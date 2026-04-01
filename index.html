@@ -3,945 +3,749 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>BotDesk — Telegram Bot Platform</title>
+<title>BotDesk — Telegram Bot Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* ═══ RESET + BASE ═══════════════════════════════════════════ */
+/* ─── RESET ─── */
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;overflow:hidden;}
-body{font-family:'Outfit',sans-serif;background:#0c0e14;color:#e2e8f0;transition:--accent .3s;}
+html,body{height:100%;overflow:hidden;-webkit-font-smoothing:antialiased;}
 
-/* ═══ THEME VARIABLES (overridden per category) ═══ */
+/* ─── THEMES ─── */
 :root{
-  --acc:#6366f1;--acc2:#818cf8;--acc-dim:rgba(99,102,241,.12);--acc-glow:rgba(99,102,241,.3);
-  --bg0:#0c0e14;--bg1:#12151e;--bg2:#181c28;--bg3:#1e2334;--bg4:#252c3f;
-  --bdr:#2a3045;--bdr2:#333d58;
-  --t1:#e2e8f0;--t2:#94a3b8;--t3:#475569;--t4:#2d3748;
-  --green:#22c55e;--red:#ef4444;--yellow:#f59e0b;--blue:#3b82f6;
-  --r:12px;--r2:8px;--r3:6px;
-  --shadow:0 8px 32px rgba(0,0,0,.5);
+  --bg0:#0b0d11;--bg1:#111318;--bg2:#181c23;--bg3:#1e2330;--bg4:#252d3d;
+  --border:#252d3d;--border2:#2e3a50;
+  --text1:#eef2f8;--text2:#8896b3;--text3:#4a5568;
+  --radius:14px;--radius-sm:8px;
+  --shadow:0 8px 32px rgba(0,0,0,.6);
+  --font:'Space Grotesk',sans-serif;--mono:'JetBrains Mono',monospace;
+  /* default accent — overridden by theme */
+  --acc:#6366f1;--acc2:#818cf8;--acc-dim:rgba(99,102,241,.12);--acc-glow:rgba(99,102,241,.25);
+  --green:#22c55e;--green-dim:rgba(34,197,94,.1);
+  --red:#ef4444;--red-dim:rgba(239,68,68,.1);
+  --blue:#3b82f6;--yellow:#f59e0b;
 }
-/* EDUCATION */
-body.cat-education{--acc:#f59e0b;--acc2:#fbbf24;--acc-dim:rgba(245,158,11,.12);--acc-glow:rgba(245,158,11,.25);}
-/* ECOMMERCE */
-body.cat-ecommerce{--acc:#10b981;--acc2:#34d399;--acc-dim:rgba(16,185,129,.12);--acc-glow:rgba(16,185,129,.25);}
-/* COMMUNITY */
-body.cat-community{--acc:#8b5cf6;--acc2:#a78bfa;--acc-dim:rgba(139,92,246,.12);--acc-glow:rgba(139,92,246,.25);}
-/* GAMING */
-body.cat-gaming{--acc:#06b6d4;--acc2:#22d3ee;--acc-dim:rgba(6,182,212,.12);--acc-glow:rgba(6,182,212,.25);--bg0:#080b0f;--bg1:#0d1117;--bg2:#111822;--bg3:#15202e;--bg4:#1a2840;}
-/* NEWS */
-body.cat-news{--acc:#ef4444;--acc2:#f87171;--acc-dim:rgba(239,68,68,.12);--acc-glow:rgba(239,68,68,.25);}
-/* BUSINESS */
-body.cat-business{--acc:#0ea5e9;--acc2:#38bdf8;--acc-dim:rgba(14,165,233,.12);--acc-glow:rgba(14,165,233,.25);}
-/* HEALTH */
-body.cat-health{--acc:#14b8a6;--acc2:#2dd4bf;--acc-dim:rgba(20,184,166,.12);--acc-glow:rgba(20,184,166,.25);}
+/* ── PURPOSE THEMES ── */
+.theme-support{--acc:#f97316;--acc2:#fb923c;--acc-dim:rgba(249,115,22,.12);--acc-glow:rgba(249,115,22,.22);}
+.theme-ecommerce{--acc:#10b981;--acc2:#34d399;--acc-dim:rgba(16,185,129,.12);--acc-glow:rgba(16,185,129,.22);}
+.theme-community{--acc:#8b5cf6;--acc2:#a78bfa;--acc-dim:rgba(139,92,246,.12);--acc-glow:rgba(139,92,246,.22);}
+.theme-education{--acc:#06b6d4;--acc2:#22d3ee;--acc-dim:rgba(6,182,212,.12);--acc-glow:rgba(6,182,212,.22);}
+.theme-gaming{--acc:#ec4899;--acc2:#f472b6;--acc-dim:rgba(236,72,153,.12);--acc-glow:rgba(236,72,153,.22);}
+.theme-finance{--acc:#f59e0b;--acc2:#fbbf24;--acc-dim:rgba(245,158,11,.12);--acc-glow:rgba(245,158,11,.22);}
+.theme-general{--acc:#6366f1;--acc2:#818cf8;--acc-dim:rgba(99,102,241,.12);--acc-glow:rgba(99,102,241,.22);}
+.theme-owner{--acc:#e11d48;--acc2:#fb7185;--acc-dim:rgba(225,29,72,.12);--acc-glow:rgba(225,29,72,.22);}
 
-/* ═══ TYPOGRAPHY ═══ */
-.mono{font-family:'JetBrains Mono',monospace;}
-.head{font-weight:800;letter-spacing:-.5px;}
+body{font-family:var(--font);background:var(--bg0);color:var(--text1);}
 
-/* ═══ SCROLLBAR ═══ */
-::-webkit-scrollbar{width:4px;height:4px;}
-::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:99px;}
-
-/* ═══ SCREENS WRAPPER ═══ */
-.screen{display:none;min-height:100vh;overflow-y:auto;}
-.screen.active{display:flex;}
-
-/* ════════════════════════════════════════════════
-   SCREEN 1 — SETUP (Supabase Config)
-════════════════════════════════════════════════ */
-#s-setup{
-  align-items:center;justify-content:center;
-  background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(99,102,241,.15),transparent);
-  padding:20px;
+/* ─── SETUP SCREEN ─── */
+#setup-screen{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;padding:20px;
+  background:radial-gradient(ellipse at 20% 30%,rgba(99,102,241,.07) 0%,transparent 50%),
+              radial-gradient(ellipse at 80% 70%,rgba(236,72,153,.05) 0%,transparent 50%),var(--bg0);
 }
 .setup-card{
-  background:var(--bg1);border:1px solid var(--bdr2);border-radius:20px;
-  padding:44px 40px;max-width:480px;width:100%;
-  box-shadow:var(--shadow),0 0 80px rgba(99,102,241,.08);
-  animation:fadeUp .5s ease both;
+  background:var(--bg1);border:1px solid var(--border2);
+  border-radius:20px;padding:40px 36px;
+  width:min(500px,95vw);
+  box-shadow:0 0 80px rgba(0,0,0,.8),0 0 160px rgba(99,102,241,.04);
+  animation:fadeUp .5s cubic-bezier(.22,1,.36,1) both;
 }
-@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
-.brand-mark{display:flex;align-items:center;gap:10px;margin-bottom:28px;}
-.brand-icon{width:40px;height:40px;background:var(--acc);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;}
-.brand-name{font-size:22px;font-weight:800;letter-spacing:-.5px;}
-.brand-name span{color:var(--acc);}
-.setup-desc{color:var(--t3);font-size:13px;line-height:1.7;margin-bottom:24px;}
-.setup-sql{
-  background:var(--bg0);border:1px solid var(--bdr);border-radius:var(--r2);
-  padding:14px;font-size:10.5px;font-family:'JetBrains Mono',monospace;
-  color:#93c5fd;line-height:1.7;white-space:pre;overflow-x:auto;
-  margin-bottom:24px;max-height:200px;overflow-y:auto;
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.setup-logo{
+  width:56px;height:56px;background:var(--acc-dim);
+  border:1.5px solid var(--acc);border-radius:16px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;margin-bottom:22px;box-shadow:0 0 28px var(--acc-glow);
 }
-.field-group{margin-bottom:16px;}
-.field-label{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-bottom:7px;}
-.field-input{
-  width:100%;background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--r2);
-  padding:11px 14px;font-size:13px;font-family:'JetBrains Mono',monospace;
-  color:var(--t1);outline:none;transition:border-color .15s,box-shadow .15s;
+.setup-card h1{font-size:24px;font-weight:700;letter-spacing:-.4px;margin-bottom:4px;}
+.setup-card h1 em{color:var(--acc);font-style:normal;}
+.setup-sub{font-size:13px;color:var(--text3);margin-bottom:30px;line-height:1.6;}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:7px;}
+.form-input{
+  width:100%;background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--radius-sm);padding:11px 14px;
+  font-size:13px;font-family:var(--mono);color:var(--text1);outline:none;
+  transition:border-color .18s,box-shadow .18s;
 }
-.field-input:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-dim);}
-.field-input::placeholder{color:var(--t4);}
-.btn-primary{
-  width:100%;padding:12px;background:var(--acc);border:none;border-radius:var(--r2);
-  color:#fff;font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;
-  cursor:pointer;transition:opacity .15s,transform .1s,box-shadow .15s;
-  box-shadow:0 4px 16px var(--acc-glow);
+.form-input:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-dim);}
+.form-input::placeholder{color:var(--text3);}
+.input-wrap{position:relative;}
+.input-wrap .eye-btn{
+  position:absolute;right:11px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:var(--text3);cursor:pointer;font-size:15px;
+  transition:color .15s;
 }
-.btn-primary:hover{opacity:.9;box-shadow:0 6px 24px var(--acc-glow);}
-.btn-primary:active{transform:scale(.98);}
-.btn-primary:disabled{opacity:.4;cursor:not-allowed;}
-.err-box{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:var(--r2);padding:9px 13px;font-size:12px;color:#fca5a5;margin-top:10px;display:none;}
+.input-wrap .eye-btn:hover{color:var(--acc);}
+.form-select{
+  width:100%;background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--radius-sm);padding:11px 14px;
+  font-size:13px;font-family:var(--font);color:var(--text1);outline:none;
+  cursor:pointer;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;
+  transition:border-color .18s;
+}
+.form-select:focus{border-color:var(--acc);}
+.form-select option{background:var(--bg2);}
+.submit-btn{
+  width:100%;padding:13px;background:var(--acc);border:none;border-radius:var(--radius-sm);
+  color:#fff;font-family:var(--font);font-size:14px;font-weight:700;
+  cursor:pointer;transition:all .15s;box-shadow:0 4px 18px var(--acc-glow);margin-top:8px;
+}
+.submit-btn:hover{filter:brightness(1.1);}
+.submit-btn:active{transform:scale(.98);}
+.submit-btn:disabled{opacity:.45;cursor:not-allowed;}
+.form-error{
+  background:var(--red-dim);border:1px solid rgba(239,68,68,.3);
+  border-radius:var(--radius-sm);padding:9px 13px;font-size:12px;
+  color:#fca5a5;margin-top:10px;display:none;
+}
+.form-hint{font-size:11px;color:var(--text3);margin-top:14px;line-height:1.8;text-align:center;}
+.form-hint a{color:var(--acc);text-decoration:none;}
+.form-hint a:hover{text-decoration:underline;}
+.tab-row{display:flex;gap:6px;margin-bottom:24px;background:var(--bg2);border-radius:10px;padding:4px;}
+.tab-btn{
+  flex:1;padding:8px;border:none;border-radius:7px;
+  font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;
+  background:transparent;color:var(--text3);transition:all .15s;
+}
+.tab-btn.active{background:var(--acc);color:#fff;box-shadow:0 2px 8px var(--acc-glow);}
 
-/* ════════════════════════════════════════════════
-   SCREEN 2 — AUTH
-════════════════════════════════════════════════ */
-#s-auth{
-  align-items:center;justify-content:center;
-  background:radial-gradient(ellipse 60% 50% at 50% 0%,var(--acc-dim),transparent);
-  padding:20px;
+/* Purpose selector grid */
+.purpose-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px;}
+.purpose-card{
+  padding:14px;border:1.5px solid var(--border2);border-radius:12px;
+  cursor:pointer;transition:all .15s;text-align:center;
+  background:var(--bg2);
 }
-.auth-card{
-  background:var(--bg1);border:1px solid var(--bdr2);border-radius:20px;
-  padding:40px 36px;max-width:420px;width:100%;
-  box-shadow:var(--shadow);animation:fadeUp .5s ease both;
-}
-.auth-tabs{display:flex;gap:0;border:1px solid var(--bdr2);border-radius:var(--r2);padding:3px;margin-bottom:28px;}
-.auth-tab{
-  flex:1;padding:8px;border-radius:calc(var(--r2) - 2px);font-size:13px;font-weight:600;
-  cursor:pointer;transition:all .15s;text-align:center;background:none;border:none;color:var(--t3);
-}
-.auth-tab.active{background:var(--acc);color:#fff;}
-.auth-footer{font-size:12px;color:var(--t3);text-align:center;margin-top:16px;}
-.auth-footer a{color:var(--acc);cursor:pointer;}
-.superadmin-hint{
-  background:var(--acc-dim);border:1px solid var(--acc);border-radius:var(--r2);
-  padding:10px 14px;font-size:12px;color:var(--t2);margin-top:14px;
-}
-.superadmin-hint strong{color:var(--acc);}
+.purpose-card:hover{border-color:var(--acc);background:var(--acc-dim);}
+.purpose-card.selected{border-color:var(--acc);background:var(--acc-dim);box-shadow:0 0 0 3px var(--acc-dim);}
+.purpose-card .pc-icon{font-size:24px;margin-bottom:6px;}
+.purpose-card .pc-name{font-size:12px;font-weight:600;color:var(--text1);}
+.purpose-card .pc-desc{font-size:10px;color:var(--text3);margin-top:2px;}
 
-/* ════════════════════════════════════════════════
-   SCREEN 3 — ONBOARDING
-════════════════════════════════════════════════ */
-#s-onboard{
-  flex-direction:column;align-items:center;
-  background:radial-gradient(ellipse 70% 40% at 50% 0%,var(--acc-dim),transparent);
-  padding:40px 20px;min-height:100vh;overflow-y:auto;
+/* Supabase config section */
+.config-box{
+  background:var(--bg0);border:1px solid var(--border);border-radius:10px;
+  padding:14px;margin-bottom:16px;
 }
-.onboard-wrap{max-width:680px;width:100%;}
-.onboard-step{display:none;}
-.onboard-step.active{display:block;animation:fadeUp .4s ease both;}
-.step-header{margin-bottom:32px;}
-.step-num{font-size:11px;font-weight:700;color:var(--acc);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
-.step-title{font-size:26px;font-weight:800;letter-spacing:-.5px;}
-.step-sub{font-size:14px;color:var(--t3);margin-top:6px;}
-.step-progress{display:flex;gap:6px;margin-bottom:32px;}
-.sp-dot{height:3px;flex:1;border-radius:99px;background:var(--bdr2);transition:background .3s;}
-.sp-dot.done{background:var(--acc);}
-/* Category cards */
-.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:28px;}
-.cat-card{
-  background:var(--bg2);border:2px solid var(--bdr);border-radius:var(--r);
-  padding:18px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;
-}
-.cat-card::before{content:'';position:absolute;inset:0;background:var(--acc-dim);opacity:0;transition:opacity .2s;}
-.cat-card:hover::before,.cat-card.selected::before{opacity:1;}
-.cat-card.selected{border-color:var(--acc);}
-.cat-card-icon{font-size:28px;margin-bottom:10px;}
-.cat-card-name{font-size:14px;font-weight:700;margin-bottom:4px;}
-.cat-card-desc{font-size:11px;color:var(--t3);line-height:1.5;}
-.cat-check{
-  position:absolute;top:10px;right:10px;width:20px;height:20px;
-  background:var(--acc);border-radius:50%;display:none;
-  align-items:center;justify-content:center;font-size:11px;color:#fff;
-}
-.cat-card.selected .cat-check{display:flex;}
-.btn-row{display:flex;gap:10px;justify-content:flex-end;}
-.btn-secondary{
-  padding:10px 22px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--r2);
-  color:var(--t2);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;
-}
-.btn-secondary:hover{border-color:var(--acc);color:var(--acc);}
+.config-box summary{font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;list-style:none;}
+.config-box summary::after{content:' ▸';color:var(--text3);}
+details[open] summary::after{content:' ▾';}
+.config-box p{font-size:11px;color:var(--text3);margin:10px 0 8px;line-height:1.7;}
 
-/* ════════════════════════════════════════════════
-   SCREEN 4 — DASHBOARD
-════════════════════════════════════════════════ */
-#s-dashboard{height:100vh;overflow:hidden;}
-/* Topbar */
-.dash-top{
-  height:52px;background:var(--bg1);border-bottom:1px solid var(--bdr);
-  display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;z-index:100;position:relative;
+/* ─── MAIN APP ─── */
+#app{display:none;height:100vh;flex-direction:column;}
+.topbar{
+  height:52px;background:var(--bg1);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;
+  position:relative;z-index:100;
 }
-.dt-hamburger{
-  width:32px;height:32px;background:none;border:1px solid var(--bdr2);border-radius:8px;
-  display:none;align-items:center;justify-content:center;cursor:pointer;color:var(--t2);font-size:16px;
-  flex-shrink:0;
+.topbar-brand{display:flex;align-items:center;gap:8px;}
+.tb-logo{
+  width:30px;height:30px;border-radius:9px;background:var(--acc-dim);
+  border:1px solid var(--acc);display:flex;align-items:center;justify-content:center;
+  font-size:14px;box-shadow:0 0 12px var(--acc-glow);
 }
-.dt-bot-badge{
-  display:flex;align-items:center;gap:8px;padding:4px 10px 4px 4px;
-  background:var(--bg2);border:1px solid var(--bdr);border-radius:99px;cursor:pointer;
-  transition:border-color .15s;
+.tb-brand-name{font-size:14px;font-weight:700;letter-spacing:-.2px;}
+.tb-brand-name em{color:var(--acc);font-style:normal;}
+.tb-sep{width:1px;height:16px;background:var(--border2);margin:0 2px;}
+.tb-info{font-size:12px;color:var(--text3);font-family:var(--mono);}
+.tb-info span{color:var(--text1);}
+.tb-badge{
+  font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;
+  background:var(--acc-dim);color:var(--acc);border:1px solid var(--acc);
 }
-.dt-bot-badge:hover{border-color:var(--acc);}
-.dt-bot-icon{width:24px;height:24px;background:var(--acc);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;}
-.dt-bot-name{font-size:13px;font-weight:600;}
-.dt-status{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--green);}
-.dt-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse2 2s infinite;}
-@keyframes pulse2{0%,100%{opacity:1}50%{opacity:.3}}
-.dt-cat-badge{
-  font-size:10px;padding:3px 10px;border-radius:99px;
-  background:var(--acc-dim);color:var(--acc);border:1px solid var(--acc);font-weight:600;
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.tb-btn{
+  background:none;border:1px solid var(--border2);border-radius:6px;
+  color:var(--text3);font-size:11px;font-family:var(--font);
+  padding:4px 12px;cursor:pointer;transition:all .15s;
 }
-.dt-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.tb-btn:hover{border-color:var(--acc);color:var(--acc);}
+.tb-btn.danger:hover{border-color:var(--red);color:var(--red);}
+.tb-status{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--green);}
+.tb-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s ease infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+/* mobile menu btn */
+.mobile-menu-btn{
+  display:none;background:none;border:1px solid var(--border2);
+  border-radius:6px;color:var(--text2);font-size:18px;padding:2px 8px;cursor:pointer;
+}
+
+/* ─── LAYOUT ─── */
+.layout{display:flex;flex:1;overflow:hidden;}
+
+/* ─── SIDEBAR ─── */
+.sidebar{
+  width:280px;background:var(--bg1);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;flex-shrink:0;transition:transform .25s;
+}
+.sidebar-head{padding:12px;border-bottom:1px solid var(--border);}
+.sb-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.sb-label{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--text3);}
 .icon-btn{
-  width:32px;height:32px;background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;
-  display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t2);
-  font-size:14px;transition:all .15s;flex-shrink:0;
+  background:none;border:1px solid var(--border2);border-radius:6px;
+  color:var(--text3);font-size:13px;padding:3px 9px;cursor:pointer;transition:all .15s;
 }
 .icon-btn:hover{border-color:var(--acc);color:var(--acc);}
-.user-pill{
-  display:flex;align-items:center;gap:8px;padding:3px 12px 3px 5px;
-  background:var(--bg2);border:1px solid var(--bdr);border-radius:99px;cursor:pointer;
+.icon-btn.spin{animation:spin .5s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sb-search{position:relative;}
+.sb-search input{
+  width:100%;background:var(--bg2);border:1px solid var(--border);
+  border-radius:8px;padding:7px 10px 7px 28px;
+  font-size:12px;font-family:var(--mono);color:var(--text1);outline:none;transition:border-color .15s;
 }
-.up-avatar{width:24px;height:24px;border-radius:50%;background:var(--acc);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;}
-.up-name{font-size:12px;font-weight:600;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-
-/* Layout */
-.dash-body{display:flex;height:calc(100vh - 52px);}
-/* Left sidebar */
-.dash-sidebar{
-  width:280px;background:var(--bg1);border-right:1px solid var(--bdr);
-  display:flex;flex-direction:column;flex-shrink:0;
-  transition:transform .3s cubic-bezier(.22,1,.36,1);
+.sb-search input:focus{border-color:var(--acc);}
+.sb-search input::placeholder{color:var(--text3);}
+.sb-search .search-icon{
+  position:absolute;left:9px;top:50%;transform:translateY(-50%);
+  color:var(--text3);font-size:11px;pointer-events:none;
 }
-/* mobile overlay */
-.sidebar-overlay{
-  display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;
-  animation:fadeIn .2s ease;
-}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-/* Sidebar tabs */
-.stabs{display:flex;padding:10px 10px 0;gap:4px;border-bottom:1px solid var(--bdr);}
-.stab{
-  flex:1;padding:7px 4px;border-radius:8px 8px 0 0;font-size:11px;font-weight:700;
-  text-align:center;cursor:pointer;color:var(--t3);transition:all .15s;border:none;background:none;
-}
-.stab.active{color:var(--acc);border-bottom:2px solid var(--acc);}
-/* search */
-.s-search{padding:10px;border-bottom:1px solid var(--bdr);}
-.s-search-input{
-  width:100%;background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;
-  padding:7px 10px 7px 28px;font-size:12px;color:var(--t1);font-family:'Outfit',sans-serif;
-  outline:none;transition:border-color .15s;
-}
-.s-search-input:focus{border-color:var(--acc);}
-.s-search-input::placeholder{color:var(--t4);}
-.s-search-wrap{position:relative;}
-.s-search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--t4);font-size:12px;}
 .user-list{flex:1;overflow-y:auto;padding:4px 0;}
-/* user item */
-.u-item{
-  padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;
-  border-left:3px solid transparent;transition:background .12s;
-}
-.u-item:hover{background:var(--bg2);}
-.u-item.active{background:var(--bg2);border-left-color:var(--acc);}
-.u-avatar{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0;font-family:'Outfit',sans-serif;}
-.u-meta{flex:1;min-width:0;}
-.u-name2{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.u-preview2{font-size:11px;color:var(--t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.u-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;}
-.u-time2{font-size:10px;color:var(--t4);}
-.u-badge2{background:var(--acc);color:#fff;font-size:9px;font-weight:700;border-radius:99px;padding:2px 6px;}
-.u-blocked{width:10px;height:10px;background:var(--red);border-radius:50%;flex-shrink:0;}
-/* sidebar stats panel */
-.stats-panel{padding:12px;border-top:1px solid var(--bdr);}
-.stat-row{display:flex;justify-content:space-between;margin-bottom:4px;}
-.stat-k{font-size:10px;color:var(--t3);}
-.stat-v{font-size:12px;font-weight:700;color:var(--t1);}
+.user-list::-webkit-scrollbar{width:3px;}
+.user-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px;}
+.sidebar-empty{padding:28px 16px;text-align:center;color:var(--text3);font-size:12px;line-height:1.8;}
 
-/* Main chat area */
-.chat-main{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;}
-.chat-bg{
-  position:absolute;inset:0;
-  background-image:radial-gradient(var(--bdr) 1px,transparent 1px);
-  background-size:26px 26px;opacity:.25;pointer-events:none;
+.uitem{
+  padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:9px;
+  border-left:3px solid transparent;transition:background .1s;
 }
-/* No user selected */
-.no-user{
-  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:12px;color:var(--t3);position:relative;z-index:1;padding:20px;
+.uitem:hover{background:var(--bg2);}
+.uitem.active{background:var(--bg2);border-left-color:var(--acc);}
+.u-av{
+  width:38px;height:38px;border-radius:11px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:14px;letter-spacing:-.5px;
 }
-.no-user-icon{font-size:52px;}
-.no-user h3{font-size:18px;font-weight:800;color:var(--t2);}
-.no-user p{font-size:13px;text-align:center;line-height:1.6;}
+.u-meta{flex:1;min-width:0;}
+.u-nm{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text2);}
+.u-pr{font-size:11px;color:var(--text3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.u-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;}
+.u-tm{font-size:9px;color:var(--text3);}
+.u-bdg{
+  background:var(--acc);color:#fff;font-size:9px;font-weight:700;
+  border-radius:99px;padding:1px 6px;min-width:16px;text-align:center;
+}
+.u-blocked{opacity:.4;text-decoration:line-through;}
+
+/* ─── CHAT ─── */
+.chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;}
+.chat-area::before{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+  background-image:radial-gradient(var(--border) 1px,transparent 1px);
+  background-size:22px 22px;opacity:.25;
+}
+.no-chat{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:8px;color:var(--text3);position:relative;z-index:1;
+}
+.no-chat .nc-icon{font-size:44px;margin-bottom:4px;}
+.no-chat h3{font-size:16px;font-weight:600;color:var(--text2);}
+.no-chat p{font-size:12px;}
+
 /* chat header */
-.chat-top{
-  background:var(--bg1);border-bottom:1px solid var(--bdr);padding:10px 16px;
-  display:flex;align-items:center;gap:10px;flex-shrink:0;position:relative;z-index:2;
+.chat-hdr{
+  background:var(--bg1);border-bottom:1px solid var(--border);
+  padding:11px 16px;display:flex;align-items:center;gap:11px;
+  flex-shrink:0;position:relative;z-index:2;
 }
-.ct-ava{width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;}
-.ct-info h3{font-size:14px;font-weight:700;}
-.ct-info p{font-size:11px;color:var(--t3);}
-.ct-actions{margin-left:auto;display:flex;gap:6px;}
-.ct-btn{
-  padding:5px 12px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:6px;
-  font-size:11px;color:var(--t2);cursor:pointer;transition:all .15s;font-family:'Outfit',sans-serif;font-weight:600;
+.ch-av{
+  width:34px;height:34px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:14px;flex-shrink:0;
 }
-.ct-btn:hover{border-color:var(--acc);color:var(--acc);}
-.ct-btn.danger:hover{border-color:var(--red);color:var(--red);}
+.ch-info h2{font-size:14px;font-weight:700;}
+.ch-info p{font-size:11px;color:var(--text3);}
+.ch-actions{margin-left:auto;display:flex;gap:7px;}
+.ch-act{
+  background:var(--bg3);border:1px solid var(--border2);border-radius:7px;
+  color:var(--text2);font-size:11px;font-family:var(--font);
+  padding:5px 11px;cursor:pointer;transition:all .15s;
+}
+.ch-act:hover{border-color:var(--acc);color:var(--acc);}
+.ch-act.red:hover{border-color:var(--red);color:var(--red);}
+
 /* messages */
-.msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:3px;position:relative;z-index:1;}
-.date-sep{text-align:center;margin:10px 0 5px;}
-.date-sep span{font-size:10px;color:var(--t3);background:var(--bg2);border:1px solid var(--bdr);border-radius:99px;padding:3px 12px;}
-.msg-row{display:flex;align-items:flex-end;gap:8px;animation:popIn .18s ease both;}
-@keyframes popIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+.messages{
+  flex:1;overflow-y:auto;padding:16px 18px;
+  display:flex;flex-direction:column;gap:2px;
+  position:relative;z-index:1;
+}
+.messages::-webkit-scrollbar{width:3px;}
+.messages::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px;}
+.date-sep{text-align:center;margin:8px 0 4px;}
+.date-sep span{
+  font-size:10px;color:var(--text3);background:var(--bg2);
+  border:1px solid var(--border);border-radius:99px;padding:3px 12px;
+}
+.msg-row{display:flex;align-items:flex-end;gap:7px;animation:msgPop .16s ease both;}
+@keyframes msgPop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
 .msg-row.out{flex-direction:row-reverse;}
 .bubble{
-  max-width:70%;padding:9px 13px;border-radius:16px;
+  max-width:65%;padding:8px 13px;border-radius:16px;
   font-size:13px;line-height:1.55;word-break:break-word;
 }
-.bubble.in{background:var(--bg3);border:1px solid var(--bdr2);border-bottom-left-radius:4px;}
-.bubble.out{background:var(--acc);color:#fff;border-bottom-right-radius:4px;}
-.bubble-time{font-size:9px;opacity:.5;margin-top:5px;display:block;text-align:right;}
-.media-tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 9px;border-radius:6px;margin-bottom:4px;background:rgba(255,255,255,.1);}
-.bubble.in .media-tag{background:var(--acc-dim);color:var(--acc);}
-/* input bar */
-.input-bar{background:var(--bg1);border-top:1px solid var(--bdr);padding:10px 14px;flex-shrink:0;position:relative;z-index:2;}
-.input-inner{display:flex;gap:10px;align-items:flex-end;}
-.chat-input{
-  flex:1;background:var(--bg2);border:1px solid var(--bdr2);border-radius:10px;
-  padding:9px 14px;font-size:13px;font-family:'Outfit',sans-serif;color:var(--t1);
-  outline:none;resize:none;max-height:110px;min-height:40px;line-height:1.5;
-  transition:border-color .15s,box-shadow .15s;
+.bubble.in{
+  background:var(--bg3);border:1px solid var(--border2);
+  border-bottom-left-radius:3px;color:var(--text1);
 }
-.chat-input:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-dim);}
-.chat-input::placeholder{color:var(--t4);}
-.send-btn2{
-  width:40px;height:40px;background:var(--acc);border:none;border-radius:10px;color:#fff;
-  font-size:18px;cursor:pointer;flex-shrink:0;transition:opacity .15s,transform .1s;
-  display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px var(--acc-glow);
+.bubble.out{
+  background:var(--acc);color:#fff;
+  border-bottom-right-radius:3px;
 }
-.send-btn2:hover{opacity:.9;}
-.send-btn2:active{transform:scale(.92);}
-.send-btn2:disabled{opacity:.3;cursor:not-allowed;}
+.bubble-time{font-size:9px;opacity:.5;margin-top:4px;display:block;text-align:right;}
+.media-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:11px;color:var(--acc);background:var(--acc-dim);
+  border-radius:5px;padding:2px 7px;margin-bottom:3px;
+}
+.bubble.out .media-badge{background:rgba(255,255,255,.2);color:#fff;}
 
-/* Right panel */
-.right-panel{
-  width:240px;background:var(--bg1);border-left:1px solid var(--bdr);
-  overflow-y:auto;flex-shrink:0;
+/* reply bar */
+.reply-bar{
+  background:var(--bg1);border-top:1px solid var(--border);
+  padding:11px 16px;flex-shrink:0;position:relative;z-index:2;
 }
-.rp-sec{padding:14px;border-bottom:1px solid var(--bdr);}
-.rp-sec-title{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);margin-bottom:12px;}
-/* broadcast */
-.bc-ta{
-  width:100%;background:var(--bg2);border:1px solid var(--bdr2);border-radius:8px;
-  padding:9px 11px;font-size:12px;font-family:'Outfit',sans-serif;color:var(--t1);
-  outline:none;resize:none;height:72px;transition:border-color .15s;
+.input-row{display:flex;gap:9px;align-items:flex-end;}
+.msg-ta{
+  flex:1;background:var(--bg2);border:1px solid var(--border2);
+  border-radius:10px;padding:10px 13px;
+  font-size:13px;font-family:var(--mono);color:var(--text1);
+  outline:none;resize:none;max-height:110px;min-height:40px;
+  transition:border-color .15s,box-shadow .15s;line-height:1.5;
 }
-.bc-ta:focus{border-color:var(--acc);}
-.bc-ta::placeholder{color:var(--t4);}
-.bc-btn{
-  width:100%;margin-top:8px;padding:9px;background:var(--acc);border:none;border-radius:8px;
-  color:#fff;font-size:12px;font-weight:700;font-family:'Outfit',sans-serif;cursor:pointer;
-  transition:opacity .15s;box-shadow:0 3px 10px var(--acc-glow);
+.msg-ta:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-dim);}
+.msg-ta::placeholder{color:var(--text3);}
+.send-btn{
+  width:40px;height:40px;background:var(--acc);border:none;border-radius:10px;
+  color:#fff;font-size:16px;cursor:pointer;flex-shrink:0;
+  transition:all .15s;box-shadow:0 4px 12px var(--acc-glow);
+  display:flex;align-items:center;justify-content:center;
 }
-.bc-btn:hover{opacity:.9;}
-.bc-btn:disabled{opacity:.4;cursor:not-allowed;}
-.bc-result{font-size:11px;padding:7px 10px;border-radius:6px;margin-top:8px;display:none;}
-.bc-result.ok{background:rgba(34,197,94,.1);color:var(--green);}
-.bc-result.fail{background:rgba(239,68,68,.1);color:var(--red);}
-/* user detail */
-.ud-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-.ud-k{font-size:10px;color:var(--t3);}
-.ud-v{font-size:11px;color:var(--t1);font-weight:600;font-family:'JetBrains Mono',monospace;}
-/* mini stats */
-.mini-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
-.ms-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;padding:10px 8px;text-align:center;}
-.ms-val{font-size:18px;font-weight:800;color:var(--acc);}
-.ms-lbl{font-size:9px;color:var(--t3);margin-top:2px;}
-/* auto-poll toggle */
-.toggle-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-.tog-lbl{font-size:12px;color:var(--t2);}
-.tog{position:relative;width:36px;height:20px;cursor:pointer;}
+.send-btn:hover{filter:brightness(1.1);}
+.send-btn:active{transform:scale(.9);}
+.send-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* ─── RIGHT PANEL ─── */
+.rpanel{
+  width:250px;background:var(--bg1);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;
+}
+.rpanel::-webkit-scrollbar{width:3px;}
+.rpanel::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px;}
+.rp-sec{padding:14px;border-bottom:1px solid var(--border);}
+.rp-title{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--text3);margin-bottom:11px;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.stat-c{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:9px;}
+.stat-c .sv{font-size:20px;font-weight:800;line-height:1;}
+.stat-c .sl{font-size:10px;color:var(--text3);margin-top:3px;}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;}
+.tog{position:relative;width:34px;height:18px;cursor:pointer;display:inline-block;}
 .tog input{opacity:0;width:0;height:0;}
 .tog-sl{position:absolute;inset:0;background:var(--bg4);border-radius:99px;transition:.2s;}
-.tog-sl::before{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;top:3px;left:3px;transition:.2s;}
+.tog-sl::before{content:'';position:absolute;width:12px;height:12px;background:#fff;border-radius:50%;top:3px;left:3px;transition:.2s;}
 .tog input:checked + .tog-sl{background:var(--acc);}
 .tog input:checked + .tog-sl::before{transform:translateX(16px);}
-/* log */
-.log-box{max-height:130px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;}
-.log-entry{font-size:10px;padding:4px 8px;background:var(--bg2);border-radius:5px;color:var(--t3);line-height:1.4;}
-.log-entry.ok{color:var(--green);}
-.log-entry.err{color:var(--red);}
+.bc-ta{
+  width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;
+  padding:9px;font-size:12px;font-family:var(--mono);color:var(--text1);
+  outline:none;resize:none;height:75px;transition:border-color .15s;
+}
+.bc-ta:focus{border-color:var(--acc);}
+.bc-ta::placeholder{color:var(--text3);}
+.bc-btn{
+  width:100%;background:var(--acc);border:none;border-radius:8px;color:#fff;
+  font-family:var(--font);font-size:12px;font-weight:700;padding:9px;
+  cursor:pointer;transition:all .15s;margin-top:8px;box-shadow:0 3px 10px var(--acc-glow);
+}
+.bc-btn:hover{filter:brightness(1.1);}
+.bc-btn:disabled{opacity:.4;cursor:not-allowed;}
+.bc-res{
+  font-size:11px;border-radius:6px;padding:7px 10px;margin-top:8px;display:none;
+  color:var(--green);background:var(--green-dim);
+}
+.bc-res.fail{color:var(--red);background:var(--red-dim);}
+.uic{display:flex;flex-direction:column;gap:7px;}
+.uic-row{display:flex;align-items:center;justify-content:space-between;}
+.uic-k{font-size:10px;color:var(--text3);}
+.uic-v{font-size:11px;color:var(--text1);font-weight:600;font-family:var(--mono);}
+.log-list{max-height:130px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;}
+.log-list::-webkit-scrollbar{width:2px;}
+.log-item{font-size:10px;color:var(--text3);padding:4px 7px;background:var(--bg2);border-radius:5px;line-height:1.5;}
+.log-item.ok{color:var(--green);}
+.log-item.err{color:var(--red);}
 
-/* ════════════════════════════════════════════════
-   SCREEN 5 — SUPER ADMIN
-════════════════════════════════════════════════ */
-#s-superadmin{flex-direction:column;height:100vh;overflow:hidden;}
-.sa-top{
-  height:52px;background:linear-gradient(90deg,#1a0a0a,#1a0000);
-  border-bottom:2px solid var(--red);display:flex;align-items:center;padding:0 20px;gap:14px;
+/* ─── OWNER PANEL ─── */
+#owner-panel{
+  flex:1;overflow-y:auto;padding:20px;
+  background:var(--bg0);position:relative;z-index:1;
 }
-.sa-badge{
-  background:var(--red);color:#fff;font-size:11px;font-weight:800;
-  padding:3px 10px;border-radius:4px;letter-spacing:1px;text-transform:uppercase;
+.op-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:20px;}
+.op-card{
+  background:var(--bg1);border:1px solid var(--border2);border-radius:var(--radius);
+  padding:18px;transition:border-color .15s;
 }
-.sa-title{font-size:15px;font-weight:800;color:var(--red);}
-.sa-body{display:flex;flex:1;overflow:hidden;}
-.sa-nav{
-  width:180px;background:#100808;border-right:1px solid rgba(239,68,68,.2);
-  display:flex;flex-direction:column;gap:2px;padding:12px 8px;
+.op-card:hover{border-color:var(--acc);}
+.op-card-hdr{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.op-av{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;flex-shrink:0;}
+.op-name{font-size:14px;font-weight:700;}
+.op-meta{font-size:11px;color:var(--text3);}
+.op-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;}
+.op-stat{background:var(--bg2);border-radius:7px;padding:7px;text-align:center;}
+.op-sv{font-size:16px;font-weight:800;}
+.op-sl{font-size:9px;color:var(--text3);}
+.op-actions{display:flex;gap:6px;}
+.op-act{
+  flex:1;padding:7px;border:1px solid var(--border2);border-radius:7px;
+  background:none;color:var(--text2);font-size:11px;font-family:var(--font);
+  cursor:pointer;font-weight:600;transition:all .15s;
 }
-.sa-nav-item{
-  padding:9px 14px;border-radius:var(--r2);font-size:13px;font-weight:600;cursor:pointer;
-  color:rgba(239,68,68,.6);transition:all .15s;border:none;background:none;text-align:left;
-}
-.sa-nav-item:hover,.sa-nav-item.active{background:rgba(239,68,68,.1);color:var(--red);}
-.sa-content{flex:1;overflow-y:auto;padding:24px;}
-.sa-section{display:none;}
-.sa-section.active{display:block;animation:fadeUp .3s ease both;}
-.sa-heading{font-size:20px;font-weight:800;margin-bottom:20px;display:flex;align-items:center;gap:10px;}
-/* tables */
-.data-table{width:100%;border-collapse:collapse;}
-.data-table th{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--t3);padding:8px 12px;text-align:left;border-bottom:1px solid var(--bdr2);}
-.data-table td{font-size:12px;padding:9px 12px;border-bottom:1px solid var(--bdr);color:var(--t2);vertical-align:middle;}
-.data-table tr:hover td{background:var(--bg2);}
-.td-actions{display:flex;gap:6px;}
-.td-btn{padding:3px 10px;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid;transition:all .15s;}
-.td-btn.red{border-color:var(--red);color:var(--red);}
-.td-btn.red:hover{background:rgba(239,68,68,.15);}
-.td-btn.blue{border-color:var(--blue);color:var(--blue);}
-.td-btn.blue:hover{background:rgba(59,130,246,.12);}
-.td-btn.green{border-color:var(--green);color:var(--green);}
-.td-btn.green:hover{background:rgba(34,197,94,.12);}
-.role-badge{font-size:10px;padding:2px 8px;border-radius:99px;font-weight:700;}
-.role-badge.superadmin{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);}
-.role-badge.admin{background:var(--acc-dim);color:var(--acc);border:1px solid var(--acc);}
-/* SA cards */
-.sa-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:24px;}
-.sa-card{background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--r);padding:16px;}
-.sa-card-val{font-size:28px;font-weight:800;color:var(--acc);}
-.sa-card-lbl{font-size:11px;color:var(--t3);margin-top:4px;}
+.op-act.view:hover{border-color:var(--blue);color:var(--blue);}
+.op-act.ban:hover{border-color:var(--red);color:var(--red);}
+.op-act.del:hover{border-color:var(--red);color:var(--red);background:var(--red-dim);}
+.op-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.op-header h2{font-size:18px;font-weight:700;}
+.op-total{font-size:12px;color:var(--text3);}
 
-/* ═══ DROPDOWN MENU ═══ */
-.dropdown{position:relative;}
-.dropdown-menu{
-  position:absolute;right:0;top:calc(100% + 6px);
-  background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--r);
-  min-width:170px;box-shadow:var(--shadow);z-index:200;
-  display:none;overflow:hidden;
-}
-.dropdown-menu.open{display:block;animation:fadeUp .15s ease both;}
-.dm-item{
-  padding:9px 14px;font-size:13px;cursor:pointer;color:var(--t2);
-  transition:background .12s;display:flex;align-items:center;gap:8px;border:none;background:none;width:100%;text-align:left;
-}
-.dm-item:hover{background:var(--bg3);color:var(--t1);}
-.dm-item.danger{color:var(--red);}
-.dm-item.danger:hover{background:rgba(239,68,68,.08);}
-.dm-sep{height:1px;background:var(--bdr);margin:4px 0;}
-
-/* ═══ MODAL ═══ */
-.modal-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;
-  display:none;align-items:center;justify-content:center;padding:20px;
-}
-.modal-overlay.open{display:flex;animation:fadeIn .2s ease;}
-.modal{
-  background:var(--bg1);border:1px solid var(--bdr2);border-radius:16px;
-  padding:28px;max-width:420px;width:100%;box-shadow:var(--shadow);
-  animation:fadeUp .2s ease both;
-}
-.modal h3{font-size:18px;font-weight:800;margin-bottom:8px;}
-.modal p{font-size:13px;color:var(--t2);margin-bottom:20px;line-height:1.6;}
-.modal-btns{display:flex;gap:10px;justify-content:flex-end;}
-.mbtn{padding:9px 20px;border-radius:var(--r2);font-size:13px;font-weight:700;cursor:pointer;border:1px solid;transition:all .15s;}
-.mbtn.cancel{border-color:var(--bdr2);background:none;color:var(--t2);}
-.mbtn.cancel:hover{border-color:var(--acc);color:var(--acc);}
-.mbtn.confirm{background:var(--red);border-color:var(--red);color:#fff;}
-.mbtn.confirm:hover{opacity:.9;}
-
-/* ═══ TOAST ═══ */
+/* ─── TOAST ─── */
 .toast{
   position:fixed;bottom:20px;right:20px;
-  background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--r2);
-  padding:10px 16px;font-size:12px;color:var(--t1);box-shadow:var(--shadow);
-  z-index:9999;transform:translateY(60px);opacity:0;
-  transition:all .3s cubic-bezier(.22,1,.36,1);pointer-events:none;
-  max-width:260px;
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--radius-sm);padding:10px 16px;font-size:12px;
+  color:var(--text1);box-shadow:var(--shadow);z-index:9999;
+  transform:translateY(60px);opacity:0;transition:all .3s cubic-bezier(.22,1,.36,1);
+  pointer-events:none;font-weight:500;
 }
 .toast.show{transform:none;opacity:1;}
 .toast.ok{border-color:var(--green);color:var(--green);}
 .toast.err{border-color:var(--red);color:var(--red);}
-.toast.warn{border-color:var(--yellow);color:var(--yellow);}
 
-/* ═══ MOBILE ═══ */
+/* ─── MODAL ─── */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;
+  display:none;align-items:center;justify-content:center;padding:20px;
+  backdrop-filter:blur(4px);
+}
+.modal-bg.show{display:flex;}
+.modal{
+  background:var(--bg1);border:1px solid var(--border2);
+  border-radius:var(--radius);padding:28px;
+  width:min(480px,95vw);max-height:80vh;overflow-y:auto;
+  box-shadow:var(--shadow);animation:fadeUp .2s ease;
+}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:16px;}
+.modal-actions{display:flex;gap:9px;margin-top:18px;}
+.modal-btn{
+  flex:1;padding:10px;border-radius:8px;font-family:var(--font);
+  font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;border:none;
+}
+.modal-btn.cancel{background:var(--bg3);color:var(--text2);}
+.modal-btn.confirm{background:var(--acc);color:#fff;box-shadow:0 3px 10px var(--acc-glow);}
+.modal-btn.danger{background:var(--red);color:#fff;}
+
+/* ─── MOBILE ─── */
 @media(max-width:768px){
-  .dt-hamburger{display:flex;}
-  .dash-sidebar{position:fixed;left:0;top:52px;bottom:0;z-index:60;transform:translateX(-100%);}
-  .dash-sidebar.open{transform:none;}
-  .sidebar-overlay.open{display:block;}
-  .right-panel{display:none;}
-  .dt-cat-badge{display:none;}
-  .bubble{max-width:85%;}
-  .ct-actions .ct-btn:not(:last-child){display:none;}
+  .sidebar{
+    position:fixed;left:0;top:52px;bottom:0;z-index:200;
+    transform:translateX(-100%);width:280px;
+  }
+  .sidebar.open{transform:none;box-shadow:4px 0 32px rgba(0,0,0,.8);}
+  .rpanel{display:none;}
+  .mobile-menu-btn{display:flex;}
+  .topbar .tb-info{display:none;}
+  .chat-hdr .ch-actions{gap:4px;}
+  .ch-act span{display:none;}
+  .bubble{max-width:80%;}
+  .messages{padding:12px;}
+  #owner-panel{padding:12px;}
+  .op-grid{grid-template-columns:1fr;}
+  .mobile-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199;display:none;
+  }
+  .mobile-overlay.show{display:block;}
 }
 @media(max-width:480px){
-  .auth-card,.setup-card{padding:28px 20px;}
-  .onboard-wrap{max-width:100%;}
-  .cat-grid{grid-template-columns:1fr 1fr;}
+  .setup-card{padding:24px 20px;}
+  .purpose-grid{grid-template-columns:repeat(2,1fr);}
 }
-@media(min-width:769px) and (max-width:1024px){
-  .right-panel{width:190px;}
-  .dash-sidebar{width:240px;}
-}
-
-/* ═══ UTILITY ═══ */
-.hidden{display:none!important;}
-.chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 8px;border-radius:99px;}
-.chip.green{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.3);}
-.chip.red{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.3);}
-.spinner{width:20px;height:20px;border:2px solid var(--bdr2);border-top-color:var(--acc);border-radius:50%;animation:spin .6s linear infinite;display:inline-block;}
-@keyframes spin{to{transform:rotate(360deg)}}
-.empty-msg{padding:32px;text-align:center;color:var(--t3);font-size:12px;}
 </style>
 </head>
 <body>
 
-<!-- ════ SCREEN 1: SETUP ════ -->
-<div id="s-setup" class="screen active">
-  <div class="setup-card">
-    <div class="brand-mark">
-      <div class="brand-icon">🤖</div>
-      <div class="brand-name">Bot<span>Desk</span></div>
-    </div>
-    <p class="setup-desc"><strong>Pehli baar setup:</strong> Apna Supabase project connect karo. Isse saara data permanently save hoga — refresh pe logout nahi hoga.</p>
-    <p class="setup-desc" style="margin-top:-12px;">Pehle Supabase mein ye SQL run karo:</p>
-    <div class="setup-sql">-- 1. Profiles table
-create table profiles (
-  id uuid references auth.users primary key,
-  name text, role text default 'admin',
-  avatar text, created_at timestamptz default now()
-);
-alter table profiles enable row level security;
-create policy "own" on profiles for all using (auth.uid()=id);
-create policy "sa_read" on profiles for select using (true);
+<!-- ─── SETUP / LOGIN ─── -->
+<div id="setup-screen">
+  <div class="setup-card" id="setup-card">
+    <div class="setup-logo">🤖</div>
+    <h1>Bot<em>Desk</em></h1>
+    <p class="setup-sub">Apne Telegram bot ka complete dashboard — messages, users, broadcast, aur analytics sab ek jagah.</p>
 
--- 2. Bots table
-create table bots (
-  id uuid primary key default gen_random_uuid(),
-  owner_id uuid references profiles(id) on delete cascade,
-  token text unique not null,
-  bot_username text, bot_name text,
-  category text, description text,
-  is_active bool default true,
-  last_update_id bigint default 0,
-  created_at timestamptz default now()
-);
-alter table bots enable row level security;
-create policy "own" on bots for all using (
-  owner_id=auth.uid() or
-  exists(select 1 from profiles where id=auth.uid() and role='superadmin')
-);
+    <div class="tab-row">
+      <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">Login</button>
+      <button class="tab-btn" id="tab-register" onclick="switchTab('register')">Register</button>
+      <button class="tab-btn" id="tab-owner" onclick="switchTab('owner')">Super Owner</button>
+    </div>
 
--- 3. Telegram users
-create table tg_users (
-  id uuid primary key default gen_random_uuid(),
-  bot_id uuid references bots(id) on delete cascade,
-  chat_id text not null,
-  name text, username text, lang_code text,
-  is_blocked bool default false,
-  msg_count int default 0,
-  created_at timestamptz default now(),
-  unique(bot_id, chat_id)
-);
-alter table tg_users enable row level security;
-create policy "via_bot" on tg_users for all using (
-  exists(select 1 from bots where id=bot_id and (
-    owner_id=auth.uid() or
-    exists(select 1 from profiles where id=auth.uid() and role='superadmin')
-  ))
-);
+    <!-- LOGIN FORM -->
+    <div id="form-login">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="login-email" placeholder="admin@email.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <div class="input-wrap">
+          <input type="password" class="form-input" id="login-pass" placeholder="••••••••" style="padding-right:40px;">
+          <button class="eye-btn" onclick="togglePass('login-pass')">👁</button>
+        </div>
+      </div>
+      <button class="submit-btn" id="login-btn" onclick="doLogin()">Login →</button>
+      <div class="form-error" id="login-err"></div>
+    </div>
 
--- 4. Messages
-create table messages (
-  id uuid primary key default gen_random_uuid(),
-  bot_id uuid references bots(id) on delete cascade,
-  tg_user_id uuid references tg_users(id) on delete cascade,
-  chat_id text, text text, media_type text,
-  is_outgoing bool default false,
-  tg_msg_id bigint,
-  created_at timestamptz default now()
-);
-alter table messages enable row level security;
-create policy "via_bot" on messages for all using (
-  exists(select 1 from bots where id=bot_id and (
-    owner_id=auth.uid() or
-    exists(select 1 from profiles where id=auth.uid() and role='superadmin')
-  ))
-);
-
--- 5. Trigger: auto-create profile on signup
-create or replace function handle_new_user()
-returns trigger as $$
-begin
-  insert into profiles(id, name)
-  values(new.id, coalesce(new.raw_user_meta_data->>'name', split_part(new.email,'@',1)));
-  return new;
-end;
-$$ language plpgsql security definer;
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute procedure handle_new_user();</div>
-    <div class="field-group">
-      <div class="field-label">Supabase Project URL</div>
-      <input class="field-input" id="sb-url" placeholder="https://xxxx.supabase.co" type="url">
-    </div>
-    <div class="field-group">
-      <div class="field-label">Supabase Anon Key</div>
-      <input class="field-input" id="sb-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." type="password">
-    </div>
-    <button class="btn-primary" id="setup-save-btn">Save & Continue →</button>
-    <div class="err-box" id="setup-err"></div>
-    <p style="font-size:11px;color:var(--t4);margin-top:14px;line-height:1.7;">
-      🔒 Ye credentials sirf aapke browser mein localStorage mein save hote hain. Koi server nahi.
-    </p>
-  </div>
-</div>
-
-<!-- ════ SCREEN 2: AUTH ════ -->
-<div id="s-auth" class="screen">
-  <div class="auth-card">
-    <div class="brand-mark">
-      <div class="brand-icon">🤖</div>
-      <div class="brand-name">Bot<span>Desk</span></div>
-    </div>
-    <div class="auth-tabs">
-      <button class="auth-tab active" data-tab="login">Login</button>
-      <button class="auth-tab" data-tab="register">Register</button>
-    </div>
-    <div id="auth-login-form">
-      <div class="field-group">
-        <div class="field-label">Email</div>
-        <input class="field-input" id="login-email" type="email" placeholder="you@example.com">
+    <!-- REGISTER FORM -->
+    <div id="form-register" style="display:none;">
+      <div class="form-group">
+        <label class="form-label">Your Name</label>
+        <input type="text" class="form-input" id="reg-name" placeholder="Rahul Sharma">
       </div>
-      <div class="field-group">
-        <div class="field-label">Password</div>
-        <input class="field-input" id="login-pass" type="password" placeholder="••••••••">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="reg-email" placeholder="admin@email.com">
       </div>
-      <button class="btn-primary" id="login-btn">Login →</button>
-    </div>
-    <div id="auth-register-form" style="display:none;">
-      <div class="field-group">
-        <div class="field-label">Name</div>
-        <input class="field-input" id="reg-name" type="text" placeholder="Aapka naam">
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <div class="input-wrap">
+          <input type="password" class="form-input" id="reg-pass" placeholder="Min 6 characters" style="padding-right:40px;">
+          <button class="eye-btn" onclick="togglePass('reg-pass')">👁</button>
+        </div>
       </div>
-      <div class="field-group">
-        <div class="field-label">Email</div>
-        <input class="field-input" id="reg-email" type="email" placeholder="you@example.com">
+      <div class="form-group">
+        <label class="form-label">Bot Token</label>
+        <div class="input-wrap">
+          <input type="password" class="form-input" id="reg-token" placeholder="123456789:ABCDef..." style="padding-right:40px;" autocomplete="off">
+          <button class="eye-btn" onclick="togglePass('reg-token')">👁</button>
+        </div>
       </div>
-      <div class="field-group">
-        <div class="field-label">Password</div>
-        <input class="field-input" id="reg-pass" type="password" placeholder="Min 6 characters">
-      </div>
-      <button class="btn-primary" id="register-btn">Create Account →</button>
-    </div>
-    <div class="err-box" id="auth-err"></div>
-    <div class="superadmin-hint">
-      <strong>⚡ SuperAdmin:</strong> Pehle register karne wala automatically SuperAdmin ban jata hai. Ya <code>SUPERADMIN_SECRET</code> environment variable set karo.
-    </div>
-  </div>
-</div>
-
-<!-- ════ SCREEN 3: ONBOARDING ════ -->
-<div id="s-onboard" class="screen">
-  <div class="onboard-wrap">
-    <div class="step-progress" id="step-progress">
-      <div class="sp-dot done" id="sp1"></div>
-      <div class="sp-dot" id="sp2"></div>
-      <div class="sp-dot" id="sp3"></div>
-    </div>
-    <!-- Step 1: Bot Token -->
-    <div class="onboard-step active" id="step-1">
-      <div class="step-header">
-        <div class="step-num">Step 1 of 3</div>
-        <h2 class="step-title">Bot Token Enter Karo</h2>
-        <p class="step-sub">@BotFather se apna bot token copy karo</p>
-      </div>
-      <div class="field-group">
-        <div class="field-label">Bot Token</div>
-        <input class="field-input" id="ob-token" type="password" placeholder="123456789:ABCDef-ghijklmnopqrstuvwxyz...">
-      </div>
-      <div class="err-box" id="ob-token-err"></div>
-      <div style="margin-top:12px;" id="ob-bot-preview" class="hidden">
-        <div style="background:var(--bg2);border:1px solid var(--acc);border-radius:var(--r);padding:14px;display:flex;align-items:center;gap:12px;">
-          <div style="width:44px;height:44px;background:var(--acc-dim);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;">🤖</div>
-          <div>
-            <div style="font-weight:700;" id="ob-bot-name">—</div>
-            <div style="font-size:12px;color:var(--acc);" id="ob-bot-user">—</div>
+      <div class="form-group">
+        <label class="form-label">Bot Ka Purpose — Theme Choose Karo</label>
+        <div class="purpose-grid" id="purpose-grid">
+          <div class="purpose-card" data-purpose="support" data-theme="theme-support" onclick="selectPurpose(this)">
+            <div class="pc-icon">🎧</div>
+            <div class="pc-name">Customer Support</div>
+            <div class="pc-desc">User queries handle karo</div>
           </div>
-          <div style="margin-left:auto;" class="chip green">✓ Verified</div>
+          <div class="purpose-card" data-purpose="ecommerce" data-theme="theme-ecommerce" onclick="selectPurpose(this)">
+            <div class="pc-icon">🛒</div>
+            <div class="pc-name">E-Commerce</div>
+            <div class="pc-desc">Orders, products, shop</div>
+          </div>
+          <div class="purpose-card" data-purpose="community" data-theme="theme-community" onclick="selectPurpose(this)">
+            <div class="pc-icon">👥</div>
+            <div class="pc-name">Community</div>
+            <div class="pc-desc">Group management</div>
+          </div>
+          <div class="purpose-card" data-purpose="education" data-theme="theme-education" onclick="selectPurpose(this)">
+            <div class="pc-icon">📚</div>
+            <div class="pc-name">Education</div>
+            <div class="pc-desc">Courses, quizzes, content</div>
+          </div>
+          <div class="purpose-card" data-purpose="gaming" data-theme="theme-gaming" onclick="selectPurpose(this)">
+            <div class="pc-icon">🎮</div>
+            <div class="pc-name">Gaming</div>
+            <div class="pc-desc">Game community & scores</div>
+          </div>
+          <div class="purpose-card" data-purpose="finance" data-theme="theme-finance" onclick="selectPurpose(this)">
+            <div class="pc-icon">💰</div>
+            <div class="pc-name">Finance / Alerts</div>
+            <div class="pc-desc">Payments, rates, alerts</div>
+          </div>
+          <div class="purpose-card" data-purpose="general" data-theme="theme-general" onclick="selectPurpose(this)" style="grid-column:span 2;">
+            <div class="pc-icon">🤖</div>
+            <div class="pc-name">General Purpose</div>
+            <div class="pc-desc">Koi specific purpose nahi</div>
+          </div>
         </div>
       </div>
-      <div class="btn-row" style="margin-top:24px;">
-        <button class="btn-primary" style="width:auto;padding:10px 28px;" id="ob-verify-btn">Verify Bot →</button>
-      </div>
+
+      <details class="config-box">
+        <summary>⚙️ Supabase Database Config</summary>
+        <p>Apna free Supabase project banao: <a href="https://supabase.com" target="_blank" style="color:var(--acc)">supabase.com</a> → Project Settings → API</p>
+        <div class="form-group" style="margin-bottom:8px;">
+          <label class="form-label">Supabase URL</label>
+          <input type="text" class="form-input" id="sb-url" placeholder="https://xyz.supabase.co" style="font-size:11px;">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Anon/Public Key</label>
+          <input type="text" class="form-input" id="sb-key" placeholder="eyJhbGciOiJIUzI1..." style="font-size:11px;">
+        </div>
+      </details>
+
+      <button class="submit-btn" id="reg-btn" onclick="doRegister()">Create Account & Connect Bot →</button>
+      <div class="form-error" id="reg-err"></div>
     </div>
-    <!-- Step 2: Category -->
-    <div class="onboard-step" id="step-2">
-      <div class="step-header">
-        <div class="step-num">Step 2 of 3</div>
-        <h2 class="step-title">Bot ka Purpose Batao</h2>
-        <p class="step-sub">Iske hisaab se poora UI aur features customize ho jayenge</p>
+
+    <!-- OWNER LOGIN -->
+    <div id="form-owner" style="display:none;">
+      <div style="background:var(--red-dim);border:1px solid rgba(225,29,72,.3);border-radius:9px;padding:12px;margin-bottom:16px;font-size:12px;color:#fca5a5;">
+        🔐 Super Owner access — system-wide control. Default password: <strong>owner2024</strong> (badal lo baad mein)
       </div>
-      <div class="cat-grid" id="cat-grid">
-        <div class="cat-card" data-cat="education" data-class="cat-education">
-          <div class="cat-card-icon">🎓</div>
-          <div class="cat-card-name">Education</div>
-          <div class="cat-card-desc">Coaching, courses, doubt solving, UPSC/competitive exams</div>
-          <div class="cat-check">✓</div>
-        </div>
-        <div class="cat-card" data-cat="ecommerce" data-class="cat-ecommerce">
-          <div class="cat-card-icon">🛍️</div>
-          <div class="cat-card-name">E-Commerce</div>
-          <div class="cat-card-desc">Online shop, orders, products, customer support</div>
-          <div class="cat-check">✓</div>
-        </div>
-        <div class="cat-card" data-cat="community" data-class="cat-community">
-          <div class="cat-card-icon">💬</div>
-          <div class="cat-card-name">Community</div>
-          <div class="cat-card-desc">Group management, member support, announcements</div>
-          <div class="cat-check">✓</div>
-        </div>
-        <div class="cat-card" data-cat="gaming" data-class="cat-gaming">
-          <div class="cat-card-icon">🎮</div>
-          <div class="cat-card-name">Gaming</div>
-          <div class="cat-card-desc">Game updates, scores, tournaments, entertainment</div>
-          <div class="cat-check">✓</div>
-        </div>
-        <div class="cat-card" data-cat="news" data-class="cat-news">
-          <div class="cat-card-icon">📰</div>
-          <div class="cat-card-name">News / Media</div>
-          <div class="cat-card-desc">Channel updates, breaking news, content delivery</div>
-          <div class="cat-check">✓</div>
-        </div>
-        <div class="cat-card" data-cat="business" data-class="cat-business">
-          <div class="cat-card-icon">💼</div>
-          <div class="cat-card-name">Business CRM</div>
-          <div class="cat-card-desc">Lead management, sales, customer follow-up</div>
-          <div class="cat-check">✓</div>
-        </div>
-        <div class="cat-card" data-cat="health" data-class="cat-health">
-          <div class="cat-card-icon">🏥</div>
-          <div class="cat-card-name">Health / Services</div>
-          <div class="cat-card-desc">Appointments, consultations, wellness services</div>
-          <div class="cat-check">✓</div>
+      <div class="form-group">
+        <label class="form-label">Owner Password</label>
+        <div class="input-wrap">
+          <input type="password" class="form-input" id="owner-pass" placeholder="Enter owner password" style="padding-right:40px;">
+          <button class="eye-btn" onclick="togglePass('owner-pass')">👁</button>
         </div>
       </div>
-      <div class="btn-row">
-        <button class="btn-secondary" id="ob-back1">← Back</button>
-        <button class="btn-primary" style="width:auto;padding:10px 28px;" id="ob-next2">Continue →</button>
+      <div class="form-group">
+        <label class="form-label">Supabase URL (required)</label>
+        <input type="text" class="form-input" id="owner-sb-url" placeholder="https://xyz.supabase.co">
       </div>
+      <div class="form-group">
+        <label class="form-label">Anon Key (required)</label>
+        <input type="text" class="form-input" id="owner-sb-key" placeholder="eyJhbGciOiJIUzI1...">
+      </div>
+      <button class="submit-btn" id="owner-btn" onclick="doOwnerLogin()" style="background:var(--red);box-shadow:0 4px 16px rgba(225,29,72,.3);">🔓 Owner Access →</button>
+      <div class="form-error" id="owner-err"></div>
     </div>
-    <!-- Step 3: Description -->
-    <div class="onboard-step" id="step-3">
-      <div class="step-header">
-        <div class="step-num">Step 3 of 3</div>
-        <h2 class="step-title">Thoda aur batao</h2>
-        <p class="step-sub">Optional — bot ka description add karo</p>
-      </div>
-      <div class="field-group">
-        <div class="field-label">Bot Description (Optional)</div>
-        <textarea class="field-input" id="ob-desc" style="resize:none;height:80px;" placeholder="Jaise: UPSC 2027 batch ke students ke liye doubt solving bot..."></textarea>
-      </div>
-      <div class="btn-row" style="margin-top:20px;">
-        <button class="btn-secondary" id="ob-back2">← Back</button>
-        <button class="btn-primary" style="width:auto;padding:10px 28px;" id="ob-finish-btn">🚀 Launch Dashboard</button>
-      </div>
-    </div>
+
+    <p class="form-hint">Data Supabase mein store hota hai — <em>aapke browser ya hamare server pe nahi</em>.<br>Token safe hai — sirf database mein encrypted store hota hai.</p>
   </div>
 </div>
 
-<!-- ════ SCREEN 4: DASHBOARD ════ -->
-<div id="s-dashboard" class="screen" style="flex-direction:column;">
-  <!-- Topbar -->
-  <div class="dash-top">
-    <button class="dt-hamburger" id="hamburger">☰</button>
-    <div class="dropdown">
-      <div class="dt-bot-badge" id="bot-badge-btn">
-        <div class="dt-bot-icon" id="dt-bot-icon">🤖</div>
-        <span class="dt-bot-name" id="dt-bot-name">My Bot</span>
-        <span style="color:var(--t3);font-size:10px;">▾</span>
-      </div>
-      <div class="dropdown-menu" id="bot-dd">
-        <div class="dm-item" id="add-bot-btn">➕ Add New Bot</div>
-        <div class="dm-sep"></div>
-        <div id="bot-list-dd"></div>
-      </div>
+<!-- ─── MAIN APP ─── -->
+<div id="app">
+  <div class="topbar">
+    <button class="mobile-menu-btn" id="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+    <div class="topbar-brand">
+      <div class="tb-logo" id="tb-logo">🤖</div>
+      <div class="tb-brand-name">Bot<em>Desk</em></div>
     </div>
-    <div class="dt-status"><div class="dt-dot"></div>Live</div>
-    <div class="dt-cat-badge" id="dt-cat-badge">—</div>
-    <div class="dt-right">
-      <label class="tog" title="Auto-refresh" style="cursor:pointer;">
-        <input type="checkbox" id="auto-poll" checked>
-        <span class="tog-sl"></span>
-      </label>
-      <div class="icon-btn" id="sa-btn" title="SuperAdmin Panel" style="display:none;">👑</div>
-      <div class="dropdown">
-        <div class="user-pill" id="user-pill-btn">
-          <div class="up-avatar" id="up-avatar">A</div>
-          <span class="up-name" id="up-name">Admin</span>
-          <span style="color:var(--t3);font-size:10px;">▾</span>
-        </div>
-        <div class="dropdown-menu" id="user-dd">
-          <div class="dm-item" id="profile-btn">👤 Profile</div>
-          <div class="dm-sep"></div>
-          <div class="dm-item danger" id="signout-btn">🚪 Sign Out</div>
-        </div>
-      </div>
+    <div class="tb-sep"></div>
+    <div class="tb-status"><div class="tb-dot"></div><span style="font-size:11px;">Live</span></div>
+    <div class="tb-sep"></div>
+    <div class="tb-info" id="tb-info">Bot: <span id="tb-botname">—</span></div>
+    <div class="tb-sep"></div>
+    <div class="tb-info">Users: <span id="tb-users">0</span></div>
+    <div class="tb-badge" id="tb-badge" style="display:none;">SUPER OWNER</div>
+    <div class="tb-right">
+      <button class="tb-btn" id="view-owner-btn" style="display:none;" onclick="toggleOwnerView()">👁 All Bots</button>
+      <button class="tb-btn danger" onclick="doLogout()">✕ Logout</button>
     </div>
   </div>
-  <!-- Body -->
-  <div class="dash-body">
-    <!-- Sidebar -->
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
-    <aside class="dash-sidebar" id="dash-sidebar">
-      <div class="stabs">
-        <button class="stab active" data-stab="users">👥 Users</button>
-        <button class="stab" data-stab="blocked">🚫 Blocked</button>
-      </div>
-      <div class="s-search">
-        <div class="s-search-wrap">
-          <span class="s-search-icon">🔍</span>
-          <input type="text" class="s-search-input" id="user-search2" placeholder="Search users…">
+
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-head">
+        <div class="sb-top">
+          <div class="sb-label">Inbox</div>
+          <button class="icon-btn" id="refresh-btn" onclick="fetchUpdates()">⟳ Refresh</button>
+        </div>
+        <div class="sb-search">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="user-search" placeholder="Search users…" oninput="renderUserList(this.value)">
         </div>
       </div>
-      <div class="user-list" id="user-list2"></div>
-      <div class="stats-panel">
-        <div class="stat-row"><span class="stat-k">Total Users</span><span class="stat-v" id="sp-users">0</span></div>
-        <div class="stat-row"><span class="stat-k">Messages</span><span class="stat-v" id="sp-msgs">0</span></div>
-        <div class="stat-row"><span class="stat-k">Unread</span><span class="stat-v" id="sp-unread">0</span></div>
-        <div class="stat-row"><span class="stat-k">Blocked</span><span class="stat-v" id="sp-blocked">0</span></div>
+      <div class="user-list" id="user-list">
+        <div class="sidebar-empty">Login karo aur bot connect karo</div>
       </div>
     </aside>
-    <!-- Chat -->
-    <div class="chat-main" id="chat-main">
-      <div class="chat-bg"></div>
-      <div class="no-user" id="no-user">
-        <div class="no-user-icon">💬</div>
+
+    <!-- MOBILE OVERLAY -->
+    <div class="mobile-overlay" id="mobile-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- CHAT AREA -->
+    <div class="chat-area" id="chat-area">
+      <div class="no-chat" id="no-chat">
+        <div class="nc-icon">💬</div>
         <h3>Koi user select karo</h3>
-        <p>Left sidebar se user choose karo reply karne ke liye.<br>Naye messages automatically aa jayenge.</p>
+        <p>Left sidebar se user choose karo reply karne ke liye</p>
       </div>
+
+      <!-- OWNER PANEL (hidden by default) -->
+      <div id="owner-panel" style="display:none;overflow-y:auto;flex:1;">
+        <div class="op-header">
+          <div>
+            <h2>🔐 System Overview</h2>
+            <div class="op-total" id="op-total">Loading...</div>
+          </div>
+          <button class="tb-btn" onclick="loadOwnerPanel()">⟳ Refresh</button>
+        </div>
+        <div class="op-grid" id="op-grid">
+          <div style="color:var(--text3);font-size:13px;grid-column:1/-1;text-align:center;padding:40px;">Loading all bots...</div>
+        </div>
+      </div>
+
       <div id="chat-view" style="display:none;flex-direction:column;height:100%;">
-        <div class="chat-top">
-          <div class="ct-ava" id="ct-ava"></div>
-          <div class="ct-info">
-            <h3 id="ct-name">—</h3>
-            <p id="ct-sub">—</p>
+        <div class="chat-hdr">
+          <div class="ch-av" id="ch-av"></div>
+          <div class="ch-info">
+            <h2 id="ch-name"></h2>
+            <p id="ch-sub"></p>
           </div>
-          <div class="ct-actions">
-            <button class="ct-btn" id="ct-block-btn">🚫 Block</button>
-            <button class="ct-btn danger" id="ct-delete-btn">🗑 Delete</button>
+          <div class="ch-actions">
+            <button class="ch-act red" id="block-btn" onclick="toggleBlock()">🚫 <span>Block</span></button>
+            <button class="ch-act red" id="del-btn" onclick="deleteUserMsgs()">🗑 <span>Clear</span></button>
           </div>
         </div>
-        <div class="msgs" id="msgs"></div>
-        <div class="input-bar">
-          <div class="input-inner">
-            <textarea class="chat-input" id="chat-input" placeholder="Message type karo… (Enter = send)" rows="1"></textarea>
-            <button class="send-btn2" id="send-btn3" title="Send">➤</button>
+        <div class="messages" id="messages"></div>
+        <div class="reply-bar">
+          <div class="input-row">
+            <textarea class="msg-ta" id="msg-ta" placeholder="Message type karo… (Enter = send)" rows="1"></textarea>
+            <button class="send-btn" id="send-btn" onclick="doSend()">➤</button>
           </div>
         </div>
       </div>
     </div>
-    <!-- Right panel -->
-    <div class="right-panel">
-      <!-- User Info -->
-      <div class="rp-sec" id="rp-user-info" style="display:none;">
-        <div class="rp-sec-title">👤 User Info</div>
-        <div id="rp-user-detail"></div>
-      </div>
-      <!-- Stats -->
+
+    <!-- RIGHT PANEL -->
+    <div class="rpanel" id="rpanel">
       <div class="rp-sec">
-        <div class="rp-sec-title">📊 Stats</div>
-        <div class="mini-stats">
-          <div class="ms-card"><div class="ms-val" id="ms-users">0</div><div class="ms-lbl">Users</div></div>
-          <div class="ms-card"><div class="ms-val" id="ms-msgs">0</div><div class="ms-lbl">Messages</div></div>
-          <div class="ms-card"><div class="ms-val" id="ms-sent">0</div><div class="ms-lbl">Sent</div></div>
-          <div class="ms-card"><div class="ms-val" id="ms-unread">0</div><div class="ms-lbl">Unread</div></div>
+        <div class="rp-title">📊 Stats</div>
+        <div class="stat-grid">
+          <div class="stat-c"><div class="sv" id="s-users" style="color:var(--acc)">0</div><div class="sl">Users</div></div>
+          <div class="stat-c"><div class="sv" id="s-msgs" style="color:var(--blue)">0</div><div class="sl">Messages</div></div>
+          <div class="stat-c"><div class="sv" id="s-unread" style="color:var(--green)">0</div><div class="sl">Unread</div></div>
+          <div class="stat-c"><div class="sv" id="s-sent" style="color:var(--text2)">0</div><div class="sl">Sent</div></div>
         </div>
       </div>
-      <!-- Broadcast -->
       <div class="rp-sec">
-        <div class="rp-sec-title">📢 Broadcast</div>
-        <textarea class="bc-ta" id="bc-ta" placeholder="Sabhi users ko message…"></textarea>
-        <button class="bc-btn" id="bc-btn">📢 Send to All</button>
-        <div class="bc-result" id="bc-result"></div>
+        <div class="rp-title">⚡ Auto Refresh</div>
+        <div class="toggle-row">
+          <span style="font-size:12px;color:var(--text2)">Every 5 sec</span>
+          <label class="tog"><input type="checkbox" id="auto-poll" checked onchange="togglePoll()"><span class="tog-sl"></span></label>
+        </div>
       </div>
-      <!-- Log -->
+      <div class="rp-sec" id="user-info-sec" style="display:none;">
+        <div class="rp-title">👤 User Info</div>
+        <div class="uic" id="user-info-card"></div>
+      </div>
       <div class="rp-sec">
-        <div class="rp-sec-title">📋 Activity Log</div>
-        <div class="log-box" id="log-box"></div>
+        <div class="rp-title">📢 Broadcast</div>
+        <textarea class="bc-ta" id="bc-ta" placeholder="Sabhi users ko message..."></textarea>
+        <button class="bc-btn" id="bc-btn" onclick="doBroadcast()">📢 Broadcast to All</button>
+        <div class="bc-res" id="bc-res"></div>
+      </div>
+      <div class="rp-sec">
+        <div class="rp-title">📋 Activity Log</div>
+        <div class="log-list" id="log-list"></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ════ SCREEN 5: SUPER ADMIN ════ -->
-<div id="s-superadmin" class="screen">
-  <div class="sa-top">
-    <span class="sa-badge">Super Admin</span>
-    <span class="sa-title">BotDesk Control Panel</span>
-    <button class="icon-btn" id="sa-back" style="margin-left:auto;border-color:rgba(239,68,68,.3);color:var(--red);">← Back</button>
-  </div>
-  <div class="sa-body">
-    <nav class="sa-nav">
-      <button class="sa-nav-item active" data-sa="overview">📊 Overview</button>
-      <button class="sa-nav-item" data-sa="bots">🤖 All Bots</button>
-      <button class="sa-nav-item" data-sa="admins">👥 Admins</button>
-      <button class="sa-nav-item" data-sa="users">💬 All Users</button>
-    </nav>
-    <div class="sa-content">
-      <div class="sa-section active" id="sa-overview">
-        <div class="sa-heading">📊 Platform Overview</div>
-        <div class="sa-cards" id="sa-ov-cards"></div>
-      </div>
-      <div class="sa-section" id="sa-bots">
-        <div class="sa-heading">🤖 All Bots</div>
-        <table class="data-table">
-          <thead><tr><th>Bot</th><th>Owner</th><th>Category</th><th>Users</th><th>Status</th><th>Actions</th></tr></thead>
-          <tbody id="sa-bots-tbody"></tbody>
-        </table>
-      </div>
-      <div class="sa-section" id="sa-admins">
-        <div class="sa-heading">👥 Admins</div>
-        <table class="data-table">
-          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Bots</th><th>Actions</th></tr></thead>
-          <tbody id="sa-admins-tbody"></tbody>
-        </table>
-      </div>
-      <div class="sa-section" id="sa-users">
-        <div class="sa-heading">💬 All Telegram Users</div>
-        <table class="data-table">
-          <thead><tr><th>User</th><th>Bot</th><th>Messages</th><th>Status</th><th>Actions</th></tr></thead>
-          <tbody id="sa-users-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal -->
-<div class="modal-overlay" id="modal">
+<!-- CONFIRM MODAL -->
+<div class="modal-bg" id="modal">
   <div class="modal">
-    <h3 id="modal-title">Confirm</h3>
-    <p id="modal-body">Are you sure?</p>
-    <div class="modal-btns">
-      <button class="mbtn cancel" id="modal-cancel">Cancel</button>
-      <button class="mbtn confirm" id="modal-confirm">Delete</button>
+    <h3 id="modal-title">Are you sure?</h3>
+    <p id="modal-body" style="font-size:13px;color:var(--text2);line-height:1.7;"></p>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn danger" id="modal-confirm">Confirm</button>
     </div>
   </div>
 </div>
@@ -949,851 +753,832 @@ create trigger on_auth_user_created
 <div class="toast" id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════════════════
-// GLOBALS
-// ══════════════════════════════════════════════════════════
-let SB = null; // Supabase client
-let SESSION = null; // Auth session
-let PROFILE = null; // { id, name, role, avatar }
-let CURRENT_BOT = null; // active bot object
-let USER_BOTS = []; // all bots of this admin
-let TG_USERS = {}; // chatId → tgUser record
-let MESSAGES = {}; // chatId → messages[]
-let UNREAD = {}; // chatId → count
-let CURRENT_CHAT = null;
-let POLL_TIMER = null;
-let SENT_COUNT = 0;
-let STAB = 'users';
+// ══════════════════════════════════════════════════════
+// CONFIG — Supabase credentials bhi localStorage mein save hote hain
+// ══════════════════════════════════════════════════════
+const OWNER_PASSWORD = 'owner2024'; // change this!
+let SB = null; // supabase client
+let SESSION = null; // { role, admin_id, bot_token, bot_info, purpose, theme, email, name }
+let users = {}; // chatId -> user object (in-memory cache)
+let currentChatId = null;
+let lastUpdateId = 0;
+let pollTimer = null;
+let sentCount = 0;
+let blockedUsers = new Set();
+let isOwnerView = false;
 
-const LS = {
-  get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
-  set: (k,v) => localStorage.setItem(k, JSON.stringify(v)),
-  del: k => localStorage.removeItem(k)
-};
-
-// ══════════════════════════════════════════════════════════
-// SCREENS
-// ══════════════════════════════════════════════════════════
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
-// ══════════════════════════════════════════════════════════
-// INIT — on load
-// ══════════════════════════════════════════════════════════
-window.addEventListener('load', async () => {
-  const cfg = LS.get('sb_config');
-  if (!cfg?.url || !cfg?.key) { showScreen('s-setup'); return; }
-  initSupabase(cfg.url, cfg.key);
-  const { data: { session } } = await SB.auth.getSession();
-  if (session) {
-    SESSION = session;
-    await loadProfile();
-    const lastBot = LS.get('last_bot_id');
-    await loadUserBots();
-    if (USER_BOTS.length === 0) { showScreen('s-onboard'); return; }
-    const bot = USER_BOTS.find(b => b.id === lastBot) || USER_BOTS[0];
-    await activateBot(bot);
-    showScreen('s-dashboard');
-  } else {
-    showScreen('s-auth');
-  }
-});
-
+// ── Supabase init ──
 function initSupabase(url, key) {
-  SB = supabase.createClient(url, key);
+  if (!url || !key) return false;
+  try {
+    SB = supabase.createClient(url, key);
+    localStorage.setItem('sb_url', url);
+    localStorage.setItem('sb_key', key);
+    return true;
+  } catch(e) { return false; }
 }
 
-// ══════════════════════════════════════════════════════════
-// SETUP SCREEN
-// ══════════════════════════════════════════════════════════
-document.getElementById('setup-save-btn').addEventListener('click', async () => {
-  const url = document.getElementById('sb-url').value.trim();
-  const key = document.getElementById('sb-key').value.trim();
-  const err = document.getElementById('setup-err');
-  if (!url || !key) { err.textContent = 'Dono fields fill karo'; err.style.display='block'; return; }
-  err.style.display='none';
-  const btn = document.getElementById('setup-save-btn');
-  btn.disabled = true; btn.textContent = 'Testing…';
+// ── Restore session on refresh ──
+(async function restoreSession() {
+  const savedUrl = localStorage.getItem('sb_url');
+  const savedKey = localStorage.getItem('sb_key');
+  const savedSession = localStorage.getItem('botdesk_session');
+  if (!savedSession) return;
+  if (savedUrl && savedKey) initSupabase(savedUrl, savedKey);
   try {
-    initSupabase(url, key);
-    const { error } = await SB.from('profiles').select('id').limit(1);
-    if (error && error.code !== 'PGRST116') throw error;
-    LS.set('sb_config', {url, key});
-    showScreen('s-auth');
-  } catch(e) {
-    err.textContent = '❌ ' + (e.message || 'Connection failed. URL/Key check karo.');
-    err.style.display = 'block';
-  }
-  btn.disabled = false; btn.textContent = 'Save & Continue →';
-});
+    SESSION = JSON.parse(savedSession);
+    if (SESSION.role === 'owner') { await startOwnerApp(); }
+    else if (SESSION.bot_token) { await startAdminApp(); }
+    else { SESSION = null; }
+  } catch(e) { SESSION = null; }
+})();
 
-// ══════════════════════════════════════════════════════════
-// AUTH SCREEN
-// ══════════════════════════════════════════════════════════
-document.querySelectorAll('.auth-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById('auth-login-form').style.display = tab.dataset.tab==='login'?'':'none';
-    document.getElementById('auth-register-form').style.display = tab.dataset.tab==='register'?'':'none';
+// ══════════════════════════════════════════════════════
+// SETUP / AUTH
+// ══════════════════════════════════════════════════════
+function switchTab(tab) {
+  ['login','register','owner'].forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+    document.getElementById('form-'+t).style.display = t===tab ? '' : 'none';
   });
-});
+}
+function togglePass(id) {
+  const el = document.getElementById(id);
+  el.type = el.type === 'password' ? 'text' : 'password';
+}
+let selectedPurpose = null;
+let selectedTheme = 'theme-general';
+function selectPurpose(card) {
+  document.querySelectorAll('.purpose-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  selectedPurpose = card.dataset.purpose;
+  selectedTheme = card.dataset.theme;
+}
 
-document.getElementById('login-btn').addEventListener('click', async () => {
+async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
   const pass = document.getElementById('login-pass').value;
-  const err = document.getElementById('auth-err');
-  if (!email||!pass) { showErr(err,'Email aur password dono chahiye'); return; }
+  const err = document.getElementById('login-err');
   const btn = document.getElementById('login-btn');
-  btn.disabled=true; btn.textContent='Logging in…';
-  const { data, error } = await SB.auth.signInWithPassword({ email, password: pass });
-  if (error) { showErr(err, error.message); btn.disabled=false; btn.textContent='Login →'; return; }
-  SESSION = data.session;
-  await loadProfile();
-  await loadUserBots();
-  if (USER_BOTS.length === 0) { showScreen('s-onboard'); }
-  else {
-    const bot = USER_BOTS[0];
-    await activateBot(bot);
-    showScreen('s-dashboard');
+  err.style.display = 'none';
+  if (!email || !pass) { showErr(err, 'Email aur password dono chahiye'); return; }
+  
+  // Try to get SB creds from localStorage first
+  const url = localStorage.getItem('sb_url');
+  const key = localStorage.getItem('sb_key');
+  if (!url || !key) {
+    showErr(err, 'Pehle Register karo aur Supabase credentials set karo');
+    return;
   }
-});
+  initSupabase(url, key);
+  
+  btn.disabled = true; btn.textContent = 'Logging in...';
+  try {
+    const { data, error } = await SB.auth.signInWithPassword({ email, password: pass });
+    if (error) throw error;
+    // Fetch admin profile
+    const { data: admin } = await SB.from('admins').select('*').eq('auth_id', data.user.id).single();
+    if (!admin) throw new Error('Admin profile nahi mila. Pehle register karo.');
+    SESSION = {
+      role: 'admin',
+      admin_id: admin.id,
+      auth_id: data.user.id,
+      email: admin.email,
+      name: admin.name,
+      bot_token: admin.bot_token,
+      purpose: admin.purpose,
+      theme: admin.theme || 'theme-general',
+      bot_info: admin.bot_info ? JSON.parse(admin.bot_info) : null
+    };
+    localStorage.setItem('botdesk_session', JSON.stringify(SESSION));
+    await startAdminApp();
+  } catch(e) {
+    showErr(err, e.message || 'Login failed');
+    btn.disabled = false; btn.textContent = 'Login →';
+  }
+}
 
-document.getElementById('register-btn').addEventListener('click', async () => {
+async function doRegister() {
   const name = document.getElementById('reg-name').value.trim();
   const email = document.getElementById('reg-email').value.trim();
   const pass = document.getElementById('reg-pass').value;
-  const err = document.getElementById('auth-err');
-  if (!name||!email||!pass) { showErr(err,'Sab fields fill karo'); return; }
-  if (pass.length < 6) { showErr(err,'Password min 6 characters'); return; }
-  const btn = document.getElementById('register-btn');
-  btn.disabled=true; btn.textContent='Creating…';
-  const { data, error } = await SB.auth.signUp({ email, password: pass, options: { data: { name } } });
-  if (error) { showErr(err, error.message); btn.disabled=false; btn.textContent='Create Account →'; return; }
-  SESSION = data.session;
-  // First user = superadmin
-  const { count } = await SB.from('profiles').select('id', {count:'exact',head:true});
-  if (count <= 1) {
-    await SB.from('profiles').update({ role:'superadmin', name }).eq('id', data.user.id);
-    toast('👑 You are SuperAdmin!', 'ok');
-  } else {
-    await SB.from('profiles').update({ name }).eq('id', data.user.id);
-  }
-  await loadProfile();
-  showScreen('s-onboard');
-});
+  const token = document.getElementById('reg-token').value.trim();
+  const sbUrl = document.getElementById('sb-url').value.trim();
+  const sbKey = document.getElementById('sb-key').value.trim();
+  const err = document.getElementById('reg-err');
+  const btn = document.getElementById('reg-btn');
+  err.style.display = 'none';
 
-async function loadProfile() {
-  if (!SESSION) return;
-  const { data } = await SB.from('profiles').select('*').eq('id', SESSION.user.id).single();
-  PROFILE = data || { id: SESSION.user.id, name: SESSION.user.email, role: 'admin' };
-  // Update topbar
-  document.getElementById('up-name').textContent = PROFILE.name;
-  document.getElementById('up-avatar').textContent = (PROFILE.name||'A')[0].toUpperCase();
-  if (PROFILE.role === 'superadmin') document.getElementById('sa-btn').style.display = 'flex';
-}
+  if (!name || !email || !pass || !token) { showErr(err,'Sabhi fields fill karo'); return; }
+  if (!selectedPurpose) { showErr(err,'Bot ka purpose select karo'); return; }
+  
+  // Use saved SB creds or new ones
+  const finalUrl = sbUrl || localStorage.getItem('sb_url');
+  const finalKey = sbKey || localStorage.getItem('sb_key');
+  if (!finalUrl || !finalKey) { showErr(err,'Supabase URL aur Key chahiye — Details tab open karo'); return; }
+  if (!initSupabase(finalUrl, finalKey)) { showErr(err,'Supabase config invalid hai'); return; }
 
-// ══════════════════════════════════════════════════════════
-// ONBOARDING
-// ══════════════════════════════════════════════════════════
-let OB_BOT_INFO = null;
-let OB_CAT = null;
-let OB_STEP = 1;
-
-function goStep(n) {
-  document.querySelectorAll('.onboard-step').forEach(s => s.classList.remove('active'));
-  document.getElementById('step-'+n).classList.add('active');
-  OB_STEP = n;
-  ['sp1','sp2','sp3'].forEach((id,i) => {
-    document.getElementById(id).classList.toggle('done', i < n);
-  });
-}
-
-document.getElementById('ob-verify-btn').addEventListener('click', async () => {
-  const token = document.getElementById('ob-token').value.trim();
-  const err = document.getElementById('ob-token-err');
-  if (!token) { showErr(err,'Token paste karo pehle'); return; }
-  const btn = document.getElementById('ob-verify-btn');
-  btn.disabled=true; btn.textContent='Verifying…';
+  btn.disabled = true; btn.textContent = 'Creating...';
   try {
-    const res = await fetch(`https://api.telegram.org/bot${token}/getMe`).then(r=>r.json());
-    if (!res.ok) throw new Error(res.description);
-    OB_BOT_INFO = res.result;
-    document.getElementById('ob-bot-name').textContent = res.result.first_name;
-    document.getElementById('ob-bot-user').textContent = '@'+(res.result.username||'');
-    document.getElementById('ob-bot-preview').classList.remove('hidden');
-    err.style.display='none';
-    goStep(2);
+    // Verify bot token first
+    const botRes = await fetch(`https://api.telegram.org/bot${token}/getMe`).then(r=>r.json());
+    if (!botRes.ok) throw new Error('Bot token invalid: ' + (botRes.description||''));
+    const botInfo = botRes.result;
+    
+    // Create Supabase auth user
+    const { data, error } = await SB.auth.signUp({ email, password: pass });
+    if (error) throw error;
+    
+    // Insert admin record
+    const { error: dbErr } = await SB.from('admins').insert({
+      auth_id: data.user.id,
+      name, email,
+      bot_token: token,
+      purpose: selectedPurpose,
+      theme: selectedTheme,
+      bot_info: JSON.stringify(botInfo),
+      created_at: new Date().toISOString()
+    });
+    if (dbErr) throw dbErr;
+    
+    SESSION = {
+      role: 'admin', admin_id: null, auth_id: data.user.id,
+      email, name, bot_token: token, purpose: selectedPurpose,
+      theme: selectedTheme, bot_info: botInfo
+    };
+    // Get the inserted admin id
+    const { data: admin } = await SB.from('admins').select('id').eq('auth_id', data.user.id).single();
+    if (admin) { SESSION.admin_id = admin.id; }
+    localStorage.setItem('botdesk_session', JSON.stringify(SESSION));
+    await startAdminApp();
   } catch(e) {
-    showErr(err, '❌ '+e.message);
-  }
-  btn.disabled=false; btn.textContent='Verify Bot →';
-});
-
-document.getElementById('ob-back1').addEventListener('click', () => goStep(1));
-document.getElementById('ob-back2').addEventListener('click', () => goStep(2));
-
-document.querySelectorAll('.cat-card').forEach(card => {
-  card.addEventListener('click', () => {
-    document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('selected'));
-    card.classList.add('selected');
-    OB_CAT = { cat: card.dataset.cat, cls: card.dataset.class };
-  });
-});
-
-document.getElementById('ob-next2').addEventListener('click', () => {
-  if (!OB_CAT) { toast('Ek category select karo', 'warn'); return; }
-  goStep(3);
-});
-
-document.getElementById('ob-finish-btn').addEventListener('click', async () => {
-  const desc = document.getElementById('ob-desc').value.trim();
-  const btn = document.getElementById('ob-finish-btn');
-  btn.disabled=true; btn.textContent='Launching…';
-  // Check if token already exists
-  const { data: existing } = await SB.from('bots').select('id').eq('token', OB_BOT_INFO?.id ? '' : document.getElementById('ob-token').value.trim()).limit(1);
-  const { data: newBot, error } = await SB.from('bots').insert({
-    owner_id: PROFILE.id,
-    token: document.getElementById('ob-token').value.trim(),
-    bot_username: OB_BOT_INFO.username,
-    bot_name: OB_BOT_INFO.first_name,
-    category: OB_CAT.cat,
-    description: desc,
-    is_active: true,
-    last_update_id: 0
-  }).select().single();
-  if (error) { toast('Error: '+error.message,'err'); btn.disabled=false; btn.textContent='🚀 Launch Dashboard'; return; }
-  await loadUserBots();
-  await activateBot(newBot);
-  showScreen('s-dashboard');
-});
-
-// ══════════════════════════════════════════════════════════
-// DASHBOARD
-// ══════════════════════════════════════════════════════════
-async function loadUserBots() {
-  const query = PROFILE.role==='superadmin'
-    ? SB.from('bots').select('*')
-    : SB.from('bots').select('*').eq('owner_id', PROFILE.id);
-  const { data } = await query.order('created_at');
-  USER_BOTS = data || [];
-  renderBotDropdown();
-}
-
-function renderBotDropdown() {
-  const dd = document.getElementById('bot-list-dd');
-  dd.innerHTML = '';
-  USER_BOTS.forEach(bot => {
-    const el = document.createElement('button');
-    el.className = 'dm-item';
-    el.innerHTML = `🤖 ${esc(bot.bot_name)} <span style="font-size:10px;color:var(--t3);margin-left:auto;">@${esc(bot.bot_username||'')}</span>`;
-    el.addEventListener('click', () => { activateBot(bot); closeDropdowns(); });
-    dd.appendChild(el);
-  });
-}
-
-async function activateBot(bot) {
-  CURRENT_BOT = bot;
-  LS.set('last_bot_id', bot.id);
-  TG_USERS = {}; MESSAGES = {}; UNREAD = {}; CURRENT_CHAT = null; SENT_COUNT = 0;
-  // Apply category theme
-  document.body.className = bot.category ? 'cat-'+bot.category : '';
-  document.getElementById('dt-bot-name').textContent = bot.bot_name;
-  document.getElementById('dt-cat-badge').textContent = catLabel(bot.category);
-  document.getElementById('no-user').style.display='flex';
-  document.getElementById('chat-view').style.display='none';
-  // Load existing users + messages from DB
-  await loadTgUsersFromDB();
-  renderUserList2();
-  updateStats2();
-  stopPoll(); startPoll();
-}
-
-async function loadTgUsersFromDB() {
-  if (!CURRENT_BOT) return;
-  const { data: users } = await SB.from('tg_users').select('*').eq('bot_id', CURRENT_BOT.id);
-  if (!users) return;
-  for (const u of users) {
-    TG_USERS[u.chat_id] = u;
-    // Load last 50 messages
-    const { data: msgs } = await SB.from('messages').select('*')
-      .eq('bot_id', CURRENT_BOT.id).eq('chat_id', u.chat_id)
-      .order('created_at', {ascending:true}).limit(50);
-    MESSAGES[u.chat_id] = msgs || [];
+    showErr(err, e.message || 'Registration failed');
+    btn.disabled = false; btn.textContent = 'Create Account & Connect Bot →';
   }
 }
 
-// ══════════════════════════════════════════════════════════
-// POLLING
-// ══════════════════════════════════════════════════════════
-function startPoll() {
-  stopPoll();
-  if (document.getElementById('auto-poll').checked) {
-    POLL_TIMER = setInterval(fetchUpdates, 4000);
-    fetchUpdates();
-  }
+async function doOwnerLogin() {
+  const pass = document.getElementById('owner-pass').value;
+  const url = document.getElementById('owner-sb-url').value.trim();
+  const key = document.getElementById('owner-sb-key').value.trim();
+  const err = document.getElementById('owner-err');
+  const btn = document.getElementById('owner-btn');
+  err.style.display = 'none';
+  if (pass !== OWNER_PASSWORD) { showErr(err,'Wrong password'); return; }
+  if (!url || !key) { showErr(err,'Supabase URL aur Key dono chahiye'); return; }
+  if (!initSupabase(url, key)) { showErr(err,'Supabase config invalid'); return; }
+  btn.disabled = true; btn.textContent = 'Connecting...';
+  SESSION = { role: 'owner', name: 'Super Owner', theme: 'theme-owner' };
+  localStorage.setItem('botdesk_session', JSON.stringify(SESSION));
+  try { await startOwnerApp(); }
+  catch(e) { showErr(err, e.message); btn.disabled=false; btn.textContent='🔓 Owner Access →'; }
 }
-function stopPoll() { if (POLL_TIMER) { clearInterval(POLL_TIMER); POLL_TIMER=null; } }
 
-document.getElementById('auto-poll').addEventListener('change', () => {
-  document.getElementById('auto-poll').checked ? startPoll() : stopPoll();
-});
+function showErr(el, msg) { el.textContent = '❌ ' + msg; el.style.display = 'block'; }
+
+// ══════════════════════════════════════════════════════
+// ADMIN APP
+// ══════════════════════════════════════════════════════
+async function startAdminApp() {
+  if (!SESSION.bot_token) { showToast('Bot token missing', 'err'); return; }
+  // Apply theme
+  document.body.className = SESSION.theme || 'theme-general';
+  document.getElementById('setup-screen').style.display = 'none';
+  const app = document.getElementById('app');
+  app.style.display = 'flex';
+  // Topbar
+  const bi = SESSION.bot_info;
+  document.getElementById('tb-botname').textContent = bi ? bi.first_name : 'Bot';
+  document.getElementById('tb-logo').textContent = getPurposeIcon(SESSION.purpose);
+  // Load blocked users from DB
+  await loadBlockedUsers();
+  // Load cached messages from DB
+  await loadMessagesFromDB();
+  // Fetch new updates
+  await fetchUpdates();
+  startPoll();
+  addLog('Connected: ' + (bi?.username||SESSION.email), 'ok');
+}
+
+async function startOwnerApp() {
+  document.body.className = 'theme-owner';
+  document.getElementById('setup-screen').style.display = 'none';
+  const app = document.getElementById('app');
+  app.style.display = 'flex';
+  document.getElementById('tb-botname').textContent = 'All Systems';
+  document.getElementById('tb-badge').style.display = '';
+  document.getElementById('view-owner-btn').style.display = '';
+  document.getElementById('tb-logo').textContent = '🔐';
+  document.getElementById('sidebar').style.display = 'none';
+  showOwnerPanel();
+}
+
+function getPurposeIcon(p) {
+  const icons = {support:'🎧',ecommerce:'🛒',community:'👥',education:'📚',gaming:'🎮',finance:'💰',general:'🤖'};
+  return icons[p] || '🤖';
+}
+
+// ══════════════════════════════════════════════════════
+// DATABASE OPERATIONS
+// ══════════════════════════════════════════════════════
+async function loadMessagesFromDB() {
+  if (!SB || !SESSION.admin_id) return;
+  try {
+    const { data } = await SB.from('bot_users').select('*, messages(*)').eq('admin_id', SESSION.admin_id);
+    if (!data) return;
+    data.forEach(u => {
+      const cid = String(u.chat_id);
+      if (!users[cid]) {
+        users[cid] = {
+          chatId: cid, name: u.name, username: u.username||'',
+          msgs: [], unread: u.unread_count||0,
+          langCode: u.lang_code||'', chatType: u.chat_type||'private',
+          db_id: u.id
+        };
+      }
+      if (u.messages) {
+        u.messages.sort((a,b)=>a.tg_message_id-b.tg_message_id).forEach(m => {
+          if (!users[cid].msgs.find(x=>x.msgId===m.tg_message_id)) {
+            users[cid].msgs.push({
+              msgId: m.tg_message_id, text: m.text||'', type: m.msg_type||'text',
+              date: m.date_ts, out: m.is_out
+            });
+          }
+        });
+      }
+    });
+    renderUserList();
+    updateStats();
+  } catch(e) { console.error('DB load error:', e); }
+}
+
+async function saveUserToDB(u) {
+  if (!SB || !SESSION.admin_id) return;
+  try {
+    const { data, error } = await SB.from('bot_users').upsert({
+      admin_id: SESSION.admin_id,
+      chat_id: u.chatId,
+      name: u.name,
+      username: u.username||'',
+      lang_code: u.langCode||'',
+      chat_type: u.chatType||'private',
+      unread_count: u.unread||0,
+      is_blocked: blockedUsers.has(u.chatId),
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'admin_id,chat_id' }).select('id').single();
+    if (data && !u.db_id) u.db_id = data.id;
+  } catch(e) { console.error('Save user error:', e); }
+}
+
+async function saveMsgToDB(chatId, msg) {
+  if (!SB || !SESSION.admin_id) return;
+  const u = users[chatId];
+  if (!u || !u.db_id) { await saveUserToDB(u); }
+  if (!u.db_id) return;
+  try {
+    await SB.from('messages').upsert({
+      admin_id: SESSION.admin_id,
+      user_id: u.db_id,
+      tg_message_id: msg.msgId,
+      text: msg.text||'',
+      msg_type: msg.type||'text',
+      date_ts: msg.date,
+      is_out: msg.out
+    }, { onConflict: 'admin_id,tg_message_id' });
+  } catch(e) { console.error('Save msg error:', e); }
+}
+
+async function loadBlockedUsers() {
+  if (!SB || !SESSION.admin_id) return;
+  try {
+    const { data } = await SB.from('bot_users').select('chat_id').eq('admin_id', SESSION.admin_id).eq('is_blocked', true);
+    if (data) data.forEach(r => blockedUsers.add(String(r.chat_id)));
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════════════════
+// TELEGRAM API
+// ══════════════════════════════════════════════════════
+const TG = (method, params={}) =>
+  fetch(`https://api.telegram.org/bot${SESSION.bot_token}/${method}`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(params)
+  }).then(r=>r.json());
 
 async function fetchUpdates() {
-  if (!CURRENT_BOT) return;
+  const btn = document.getElementById('refresh-btn');
+  btn.classList.add('spin');
   try {
-    const offset = (CURRENT_BOT.last_update_id || 0) + 1;
-    const res = await fetch(`https://api.telegram.org/bot${CURRENT_BOT.token}/getUpdates?offset=${offset}&limit=50&timeout=0`).then(r=>r.json());
-    if (!res.ok) return;
-    if (!res.result.length) return;
-    let maxId = CURRENT_BOT.last_update_id;
-    for (const upd of res.result) {
-      await processUpdate(upd);
-      if (upd.update_id > maxId) maxId = upd.update_id;
+    const res = await TG('getUpdates', {
+      offset: lastUpdateId + 1, limit: 100, timeout: 0,
+      allowed_updates: ['message','callback_query']
+    });
+    if (res.ok && res.result.length) {
+      for (const upd of res.result) await processUpdate(upd);
+      lastUpdateId = res.result[res.result.length-1].update_id;
+      renderUserList(document.getElementById('user-search').value);
+      if (currentChatId) renderMessages(currentChatId);
+      updateStats();
     }
-    // Save last update id to DB
-    CURRENT_BOT.last_update_id = maxId;
-    await SB.from('bots').update({ last_update_id: maxId }).eq('id', CURRENT_BOT.id);
-    renderUserList2();
-    if (CURRENT_CHAT) renderMsgs(CURRENT_CHAT);
-    updateStats2();
-  } catch(e) { addLog('Poll error: '+e.message,'err'); }
+  } catch(e) { addLog('Fetch error: '+e.message,'err'); }
+  btn.classList.remove('spin');
 }
 
-async function processUpdate(upd) {
-  const msg = upd.message;
+async function processUpdate(update) {
+  const msg = update.message;
   if (!msg) return;
-  const chatId = String(msg.chat.id);
-  const from = msg.from||{};
-  const name = [from.first_name, from.last_name].filter(Boolean).join(' ') || msg.chat.title || 'User';
-
-  // Check blocked
-  if (TG_USERS[chatId]?.is_blocked) return;
-
-  // Upsert tg_user in DB
-  let tgu = TG_USERS[chatId];
-  if (!tgu) {
-    const { data } = await SB.from('tg_users').upsert({
-      bot_id: CURRENT_BOT.id, chat_id: chatId,
-      name, username: from.username||'', lang_code: from.language_code||'',
-      is_blocked: false, msg_count: 1
-    }, { onConflict: 'bot_id,chat_id' }).select().single();
-    tgu = data;
-    TG_USERS[chatId] = tgu;
-    MESSAGES[chatId] = [];
-    addLog(`New user: ${name}`, 'ok');
-  } else {
-    // increment msg_count
-    await SB.from('tg_users').update({ msg_count: (tgu.msg_count||0)+1, name }).eq('id', tgu.id);
-    TG_USERS[chatId].msg_count = (tgu.msg_count||0)+1;
+  const chat = msg.chat;
+  const from = msg.from || {};
+  const cid = String(chat.id);
+  if (blockedUsers.has(cid)) return;
+  if (!users[cid]) {
+    const name = [from.first_name, from.last_name].filter(Boolean).join(' ') || chat.title || 'User';
+    users[cid] = {
+      chatId: cid, name, username: from.username||'',
+      msgs: [], unread: 0, langCode: from.language_code||'',
+      chatType: chat.type, db_id: null
+    };
+    await saveUserToDB(users[cid]);
   }
-
-  // Save message to DB
-  const msgData = {
-    bot_id: CURRENT_BOT.id,
-    tg_user_id: tgu.id,
-    chat_id: chatId,
-    text: msg.text || msg.caption || '',
-    media_type: getMsgType(msg),
-    is_outgoing: false,
-    tg_msg_id: msg.message_id
-  };
-  const { data: saved } = await SB.from('messages').insert(msgData).select().single();
-  if (saved && !MESSAGES[chatId]?.find(m=>m.tg_msg_id===msg.message_id)) {
-    MESSAGES[chatId] = [...(MESSAGES[chatId]||[]), saved];
-    if (chatId !== CURRENT_CHAT) {
-      UNREAD[chatId] = (UNREAD[chatId]||0) + 1;
-    }
-    addLog(`📩 ${name}: ${(msg.text||'['+getMsgType(msg)+']').slice(0,35)}`);
+  const u = users[cid];
+  if (!u.msgs.find(m => m.msgId === msg.message_id)) {
+    const m = {
+      msgId: msg.message_id,
+      text: msg.text || msg.caption || '',
+      type: getMsgType(msg), date: msg.date, out: false
+    };
+    u.msgs.push(m);
+    if (cid !== currentChatId) u.unread++;
+    await saveMsgToDB(cid, m);
+    await saveUserToDB(u);
+    addLog(`↩ ${u.name}: ${(msg.text||'[media]').slice(0,28)}`);
   }
 }
 
 function getMsgType(msg) {
-  if (msg.photo) return 'photo'; if (msg.video) return 'video';
-  if (msg.document) return 'document'; if (msg.audio) return 'audio';
-  if (msg.voice) return 'voice'; if (msg.sticker) return 'sticker';
-  if (msg.video_note) return 'video_note'; if (msg.location) return 'location';
-  if (msg.contact) return 'contact'; if (msg.poll) return 'poll';
+  if (msg.photo) return 'photo';
+  if (msg.video) return 'video';
+  if (msg.document) return 'document';
+  if (msg.audio) return 'audio';
+  if (msg.voice) return 'voice';
+  if (msg.sticker) return 'sticker';
+  if (msg.video_note) return 'video_note';
+  if (msg.location) return 'location';
+  if (msg.contact) return 'contact';
+  if (msg.poll) return 'poll';
   return 'text';
 }
 
-// ══════════════════════════════════════════════════════════
-// RENDER USERS
-// ══════════════════════════════════════════════════════════
-function renderUserList2(q='') {
-  const list = document.getElementById('user-list2');
-  const showBlocked = STAB === 'blocked';
-  let users = Object.values(TG_USERS).filter(u => {
-    if (showBlocked !== u.is_blocked) return false;
-    if (q && !u.name?.toLowerCase().includes(q.toLowerCase()) && !(u.username||'').toLowerCase().includes(q.toLowerCase())) return false;
-    return true;
-  }).sort((a,b) => {
-    const la = MESSAGES[a.chat_id]?.at(-1)?.created_at||'';
-    const lb = MESSAGES[b.chat_id]?.at(-1)?.created_at||'';
-    return lb.localeCompare(la);
-  });
-
-  if (!users.length) { list.innerHTML = `<div class="empty-msg">${showBlocked?'Koi blocked user nahi':'Abhi tak koi message nahi aaya 💤'}</div>`; return; }
-  list.innerHTML = '';
-  users.forEach(u => {
-    const last = MESSAGES[u.chat_id]?.at(-1);
-    const preview = last ? (last.is_outgoing?'→ ':'')+((last.text||'['+last.media_type+']').slice(0,42)) : '—';
-    const [bg,fg] = pal(u.chat_id);
-    const unread = UNREAD[u.chat_id]||0;
-    const el = document.createElement('div');
-    el.className = 'u-item'+(u.chat_id===CURRENT_CHAT?' active':'')+(unread>0?' unread':'');
-    el.dataset.cid = u.chat_id;
-    el.innerHTML = `
-      <div class="u-avatar" style="background:${bg};color:${fg};">${initials2(u.name)}</div>
-      <div class="u-meta">
-        <div class="u-name2">${esc(u.name)}${u.username?` <span style="color:var(--t3);font-size:10px;font-weight:400;">@${esc(u.username)}</span>`:''}</div>
-        <div class="u-preview2">${esc(preview)}</div>
-      </div>
-      <div class="u-right">
-        <span class="u-time2">${relTime(last?.created_at)}</span>
-        ${unread>0?`<span class="u-badge2">${unread}</span>`:''}
-        ${u.is_blocked?'<div class="u-blocked"></div>':''}
-      </div>
-    `;
-    el.addEventListener('click', () => openChat2(u.chat_id));
-    list.appendChild(el);
-  });
-}
-
-document.getElementById('user-search2').addEventListener('input', e => renderUserList2(e.target.value));
-document.querySelectorAll('.stab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active'));
-    tab.classList.add('active');
-    STAB = tab.dataset.stab;
-    renderUserList2();
-  });
-});
-
-// ══════════════════════════════════════════════════════════
-// OPEN CHAT
-// ══════════════════════════════════════════════════════════
-function openChat2(chatId) {
-  CURRENT_CHAT = chatId;
-  UNREAD[chatId] = 0;
-  const u = TG_USERS[chatId];
-  if (!u) return;
-  // Update sidebar
-  document.querySelectorAll('.u-item').forEach(el => el.classList.toggle('active', el.dataset.cid===chatId));
-  // Show chat view
-  document.getElementById('no-user').style.display='none';
-  const cv = document.getElementById('chat-view');
-  cv.style.display='flex';
-  // Header
-  const [bg,fg] = pal(chatId);
-  const av = document.getElementById('ct-ava');
-  av.style.cssText = `width:34px;height:34px;border-radius:11px;background:${bg};color:${fg};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;`;
-  av.textContent = initials2(u.name);
-  document.getElementById('ct-name').textContent = u.name;
-  document.getElementById('ct-sub').textContent = (u.username?`@${u.username} · `:'') + `ID: ${chatId}`;
-  document.getElementById('ct-block-btn').textContent = u.is_blocked ? '✅ Unblock' : '🚫 Block';
-  // User info panel
-  const ui = document.getElementById('rp-user-info');
-  ui.style.display='';
-  document.getElementById('rp-user-detail').innerHTML = `
-    <div class="ud-row"><span class="ud-k">Chat ID</span><span class="ud-v">${chatId}</span></div>
-    ${u.username?`<div class="ud-row"><span class="ud-k">Username</span><span class="ud-v">@${esc(u.username)}</span></div>`:''}
-    <div class="ud-row"><span class="ud-k">Language</span><span class="ud-v">${u.lang_code||'—'}</span></div>
-    <div class="ud-row"><span class="ud-k">Messages</span><span class="ud-v">${u.msg_count||0}</span></div>
-    <div class="ud-row"><span class="ud-k">Joined</span><span class="ud-v">${relTime(u.created_at)}</span></div>
-  `;
-  renderMsgs(chatId);
-  updateStats2();
-  // mobile: close sidebar
-  if (window.innerWidth<=768) closeSidebar();
-  document.getElementById('chat-input').focus();
-}
-
-function renderMsgs(chatId) {
-  const msgs = MESSAGES[chatId]||[];
-  const area = document.getElementById('msgs');
-  const wasAtBottom = area.scrollHeight - area.scrollTop - area.clientHeight < 60;
-  area.innerHTML = '';
-  let lastDay = '';
-  msgs.forEach(msg => {
-    const day = new Date(msg.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
-    if (day !== lastDay) {
-      const sep = document.createElement('div'); sep.className='date-sep';
-      sep.innerHTML=`<span>${day}</span>`; area.appendChild(sep); lastDay=day;
-    }
-    const row = document.createElement('div');
-    row.className='msg-row'+(msg.is_outgoing?' out':'');
-    let inner = '';
-    const ICONS = {photo:'🖼️',video:'🎬',document:'📎',audio:'🎵',voice:'🎤',sticker:'🎭',video_note:'📹',location:'📍',contact:'👤',poll:'📊'};
-    if (msg.media_type && msg.media_type!=='text') {
-      inner += `<div class="media-tag">${ICONS[msg.media_type]||'📎'} ${msg.media_type}</div>`;
-    }
-    if (msg.text) inner += `<div>${esc(msg.text)}</div>`;
-    inner += `<span class="bubble-time">${new Date(msg.created_at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</span>`;
-    const bubble = document.createElement('div');
-    bubble.className='bubble'+(msg.is_outgoing?' out':' in');
-    bubble.innerHTML=inner;
-    row.appendChild(bubble);
-    area.appendChild(row);
-  });
-  if (wasAtBottom || msgs.length <= 10) area.scrollTop = area.scrollHeight;
-}
-
-// ══════════════════════════════════════════════════════════
-// SEND MESSAGE
-// ══════════════════════════════════════════════════════════
-const chatInput = document.getElementById('chat-input');
-chatInput.addEventListener('keydown', e => { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doSend2();} });
-chatInput.addEventListener('input', () => { chatInput.style.height='auto'; chatInput.style.height=Math.min(chatInput.scrollHeight,110)+'px'; });
-document.getElementById('send-btn3').addEventListener('click', doSend2);
-
-async function doSend2() {
-  if (!CURRENT_CHAT || !CURRENT_BOT) return;
-  const text = chatInput.value.trim();
-  if (!text) return;
-  const btn = document.getElementById('send-btn3');
-  btn.disabled=true;
-  try {
-    const res = await fetch(`https://api.telegram.org/bot${CURRENT_BOT.token}/sendMessage`,{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({chat_id: CURRENT_CHAT, text})
-    }).then(r=>r.json());
-    if (!res.ok) throw new Error(res.description);
-    const u = TG_USERS[CURRENT_CHAT];
-    // Save to DB
-    const { data: saved } = await SB.from('messages').insert({
-      bot_id: CURRENT_BOT.id, tg_user_id: u.id,
-      chat_id: CURRENT_CHAT, text, media_type:'text', is_outgoing:true, tg_msg_id: res.result.message_id
-    }).select().single();
-    MESSAGES[CURRENT_CHAT] = [...(MESSAGES[CURRENT_CHAT]||[]), saved];
-    SENT_COUNT++;
-    chatInput.value=''; chatInput.style.height='auto';
-    renderMsgs(CURRENT_CHAT);
-    renderUserList2();
-    updateStats2();
-    addLog(`Sent to ${u.name}: ${text.slice(0,35)}`,'ok');
-  } catch(e) { toast('Send failed: '+e.message,'err'); }
-  btn.disabled=false;
-}
-
-// ══════════════════════════════════════════════════════════
-// BLOCK / DELETE USER
-// ══════════════════════════════════════════════════════════
-document.getElementById('ct-block-btn').addEventListener('click', async () => {
-  if (!CURRENT_CHAT) return;
-  const u = TG_USERS[CURRENT_CHAT];
-  const newVal = !u.is_blocked;
-  await SB.from('tg_users').update({ is_blocked: newVal }).eq('id', u.id);
-  TG_USERS[CURRENT_CHAT].is_blocked = newVal;
-  document.getElementById('ct-block-btn').textContent = newVal?'✅ Unblock':'🚫 Block';
-  toast(newVal ? `${u.name} blocked` : `${u.name} unblocked`, newVal?'err':'ok');
-  addLog((newVal?'Blocked ':'Unblocked ')+u.name, newVal?'err':'ok');
-  renderUserList2();
-});
-
-document.getElementById('ct-delete-btn').addEventListener('click', () => {
-  if (!CURRENT_CHAT) return;
-  const u = TG_USERS[CURRENT_CHAT];
-  openModal(`Delete User?`, `"${u.name}" aur unke saare messages permanently delete ho jayenge.`, async () => {
-    await SB.from('tg_users').delete().eq('id', u.id);
-    delete TG_USERS[CURRENT_CHAT]; delete MESSAGES[CURRENT_CHAT]; delete UNREAD[CURRENT_CHAT];
-    CURRENT_CHAT = null;
-    document.getElementById('no-user').style.display='flex';
-    document.getElementById('chat-view').style.display='none';
-    document.getElementById('rp-user-info').style.display='none';
-    renderUserList2(); updateStats2();
-    toast('User deleted','ok');
-  });
-});
-
-// ══════════════════════════════════════════════════════════
-// BROADCAST
-// ══════════════════════════════════════════════════════════
-document.getElementById('bc-btn').addEventListener('click', async () => {
-  const text = document.getElementById('bc-ta').value.trim();
-  if (!text) { toast('Message likho pehle','warn'); return; }
-  const users = Object.values(TG_USERS).filter(u=>!u.is_blocked);
-  if (!users.length) { toast('Koi user nahi hai','warn'); return; }
-  const btn = document.getElementById('bc-btn');
-  const res = document.getElementById('bc-result');
-  btn.disabled=true; btn.textContent='Sending…'; res.style.display='none';
-  let ok=0, fail=0;
-  for (const u of users) {
-    try {
-      const r = await fetch(`https://api.telegram.org/bot${CURRENT_BOT.token}/sendMessage`,{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({chat_id:u.chat_id, text})
-      }).then(r=>r.json());
-      if (r.ok) {
-        ok++;
-        const { data: saved } = await SB.from('messages').insert({
-          bot_id:CURRENT_BOT.id, tg_user_id:u.id, chat_id:u.chat_id,
-          text, media_type:'text', is_outgoing:true, tg_msg_id:r.result.message_id
-        }).select().single();
-        MESSAGES[u.chat_id] = [...(MESSAGES[u.chat_id]||[]), saved];
-        SENT_COUNT++;
-      } else fail++;
-      await new Promise(r=>setTimeout(r,40));
-    } catch { fail++; }
-  }
-  btn.disabled=false; btn.textContent='📢 Send to All';
-  res.className='bc-result '+(fail===0?'ok':'fail');
-  res.textContent=`✅ ${ok} delivered${fail?` · ❌ ${fail} failed`:''}`;
-  res.style.display='';
-  addLog(`Broadcast: ${ok}/${users.length}`,'ok');
-  if (CURRENT_CHAT) renderMsgs(CURRENT_CHAT);
-  renderUserList2(); updateStats2();
-});
-
-// ══════════════════════════════════════════════════════════
-// STATS
-// ══════════════════════════════════════════════════════════
-function updateStats2() {
-  const all = Object.values(TG_USERS);
-  const uCount = all.length;
-  const mCount = Object.values(MESSAGES).reduce((a,ms)=>a+ms.length,0);
-  const unread = Object.values(UNREAD).reduce((a,v)=>a+v,0);
-  const blocked = all.filter(u=>u.is_blocked).length;
-  ['sp-users','ms-users'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=uCount; });
-  ['sp-msgs','ms-msgs'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=mCount; });
-  ['sp-unread','ms-unread'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=unread; });
-  document.getElementById('sp-blocked').textContent=blocked;
-  document.getElementById('ms-sent').textContent=SENT_COUNT;
-}
-
-// ══════════════════════════════════════════════════════════
-// ADD BOT
-// ══════════════════════════════════════════════════════════
-document.getElementById('add-bot-btn').addEventListener('click', () => {
-  closeDropdowns();
-  OB_BOT_INFO=null; OB_CAT=null;
-  document.getElementById('ob-token').value='';
-  document.getElementById('ob-bot-preview').classList.add('hidden');
-  document.querySelectorAll('.cat-card').forEach(c=>c.classList.remove('selected'));
-  goStep(1);
-  showScreen('s-onboard');
-});
-
-// ══════════════════════════════════════════════════════════
-// SIGN OUT
-// ══════════════════════════════════════════════════════════
-document.getElementById('signout-btn').addEventListener('click', async () => {
-  closeDropdowns();
-  stopPoll();
-  await SB.auth.signOut();
-  LS.del('last_bot_id');
-  SESSION=null; PROFILE=null; CURRENT_BOT=null; USER_BOTS=[]; TG_USERS={}; MESSAGES={}; UNREAD={}; CURRENT_CHAT=null;
-  showScreen('s-auth');
-});
-
-// ══════════════════════════════════════════════════════════
-// SUPERADMIN PANEL
-// ══════════════════════════════════════════════════════════
-document.getElementById('sa-btn').addEventListener('click', async () => {
-  closeDropdowns();
-  await loadSAData();
-  showScreen('s-superadmin');
-});
-document.getElementById('sa-back').addEventListener('click', () => showScreen('s-dashboard'));
-
-document.querySelectorAll('.sa-nav-item').forEach(item => {
-  item.addEventListener('click', () => {
-    document.querySelectorAll('.sa-nav-item').forEach(i=>i.classList.remove('active'));
-    item.classList.add('active');
-    document.querySelectorAll('.sa-section').forEach(s=>s.classList.remove('active'));
-    document.getElementById('sa-'+item.dataset.sa).classList.add('active');
-  });
-});
-
-async function loadSAData() {
-  const [botsRes, profilesRes, usersRes, msgsRes] = await Promise.all([
-    SB.from('bots').select('*, profiles(name,email)').order('created_at',{ascending:false}),
-    SB.from('profiles').select('*, bots(id)').order('created_at'),
-    SB.from('tg_users').select('*, bots(bot_name,owner_id)').order('created_at',{ascending:false}).limit(100),
-    SB.from('messages').select('id',{count:'exact',head:true})
-  ]);
-  const bots = botsRes.data||[];
-  const profiles = profilesRes.data||[];
-  const users = usersRes.data||[];
-  const msgCount = msgsRes.count||0;
-  // Overview
-  document.getElementById('sa-ov-cards').innerHTML = `
-    <div class="sa-card"><div class="sa-card-val">${profiles.length}</div><div class="sa-card-lbl">Total Admins</div></div>
-    <div class="sa-card"><div class="sa-card-val">${bots.length}</div><div class="sa-card-lbl">Active Bots</div></div>
-    <div class="sa-card"><div class="sa-card-val">${users.length}</div><div class="sa-card-lbl">TG Users</div></div>
-    <div class="sa-card"><div class="sa-card-val">${msgCount}</div><div class="sa-card-lbl">Messages</div></div>
-  `;
-  // Bots table
-  document.getElementById('sa-bots-tbody').innerHTML = bots.map(b=>`
-    <tr>
-      <td><strong>${esc(b.bot_name)}</strong><br><span style="font-size:10px;color:var(--t3);">@${esc(b.bot_username||'')}</span></td>
-      <td>${esc(b.profiles?.name||'—')}</td>
-      <td><span class="chip green">${catLabel(b.category)}</span></td>
-      <td>—</td>
-      <td><span class="chip ${b.is_active?'green':'red'}">${b.is_active?'Active':'Inactive'}</span></td>
-      <td class="td-actions">
-        <button class="td-btn red" onclick="saDeleteBot('${b.id}','${esc(b.bot_name)}')">Delete</button>
-        <button class="td-btn blue" onclick="saToggleBot('${b.id}',${!b.is_active})">${b.is_active?'Disable':'Enable'}</button>
-      </td>
-    </tr>
-  `).join('');
-  // Admins table
-  document.getElementById('sa-admins-tbody').innerHTML = profiles.map(p=>`
-    <tr>
-      <td><strong>${esc(p.name||'—')}</strong></td>
-      <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${esc(p.email||p.id)}</td>
-      <td><span class="role-badge ${p.role}">${p.role}</span></td>
-      <td>${(p.bots||[]).length}</td>
-      <td class="td-actions">
-        ${p.role!=='superadmin'?`<button class="td-btn red" onclick="saBanAdmin('${p.id}','${esc(p.name||'')}')">Remove</button>`:'<span style="color:var(--t3);font-size:11px;">Protected</span>'}
-        ${p.role==='admin'?`<button class="td-btn green" onclick="saPromote('${p.id}')">Promote SA</button>`:''}
-      </td>
-    </tr>
-  `).join('');
-  // Users table
-  document.getElementById('sa-users-tbody').innerHTML = users.map(u=>`
-    <tr>
-      <td><strong>${esc(u.name||'?')}</strong>${u.username?`<br><span style="font-size:10px;color:var(--t3);">@${esc(u.username)}</span>`:''}</td>
-      <td>${esc(u.bots?.bot_name||'—')}</td>
-      <td>${u.msg_count||0}</td>
-      <td><span class="chip ${u.is_blocked?'red':'green'}">${u.is_blocked?'Blocked':'Active'}</span></td>
-      <td class="td-actions">
-        <button class="td-btn red" onclick="saBlockUser('${u.id}',${!u.is_blocked})">${u.is_blocked?'Unblock':'Block'}</button>
-        <button class="td-btn red" onclick="saDeleteUser('${u.id}','${esc(u.name||'')}')">Delete</button>
-      </td>
-    </tr>
-  `).join('');
-}
-
-window.saDeleteBot = (id, name) => {
-  openModal('Delete Bot?', `"${name}" aur uske saare data permanently delete ho jayenge.`, async () => {
-    await SB.from('bots').delete().eq('id', id);
-    toast('Bot deleted','ok');
-    await loadSAData();
-  });
-};
-window.saToggleBot = async (id, active) => {
-  await SB.from('bots').update({is_active: active}).eq('id',id);
-  toast(active?'Bot enabled':'Bot disabled', 'ok');
-  await loadSAData();
-};
-window.saBanAdmin = (id, name) => {
-  openModal('Remove Admin?', `"${name}" ka account aur unke saare bots delete ho jayenge.`, async () => {
-    await SB.auth.admin.deleteUser(id);
-    toast('Admin removed','ok');
-    await loadSAData();
-  });
-};
-window.saPromote = async (id) => {
-  await SB.from('profiles').update({role:'superadmin'}).eq('id',id);
-  toast('Promoted to SuperAdmin','ok');
-  await loadSAData();
-};
-window.saBlockUser = async (id, block) => {
-  await SB.from('tg_users').update({is_blocked:block}).eq('id',id);
-  toast(block?'User blocked':'User unblocked','ok');
-  await loadSAData();
-};
-window.saDeleteUser = (id, name) => {
-  openModal('Delete User?', `"${name}" aur messages delete ho jayenge.`, async () => {
-    await SB.from('tg_users').delete().eq('id',id);
-    toast('User deleted','ok');
-    await loadSAData();
-  });
-};
-
-// ══════════════════════════════════════════════════════════
-// DROPDOWNS
-// ══════════════════════════════════════════════════════════
-document.getElementById('bot-badge-btn').addEventListener('click', e => { e.stopPropagation(); toggleDD('bot-dd'); });
-document.getElementById('user-pill-btn').addEventListener('click', e => { e.stopPropagation(); toggleDD('user-dd'); });
-function toggleDD(id) {
-  const el = document.getElementById(id);
-  el.classList.toggle('open');
-  document.querySelectorAll('.dropdown-menu').forEach(d => { if(d.id!==id) d.classList.remove('open'); });
-}
-function closeDropdowns() { document.querySelectorAll('.dropdown-menu').forEach(d=>d.classList.remove('open')); }
-document.addEventListener('click', closeDropdowns);
-
-// ══════════════════════════════════════════════════════════
-// MOBILE SIDEBAR
-// ══════════════════════════════════════════════════════════
-document.getElementById('hamburger').addEventListener('click', () => {
-  document.getElementById('dash-sidebar').classList.add('open');
-  document.getElementById('sidebar-overlay').classList.add('open');
-});
-function closeSidebar() {
-  document.getElementById('dash-sidebar').classList.remove('open');
-  document.getElementById('sidebar-overlay').classList.remove('open');
-}
-document.getElementById('sidebar-overlay').addEventListener('click', closeSidebar);
-
-// ══════════════════════════════════════════════════════════
-// MODAL
-// ══════════════════════════════════════════════════════════
-let _modalCb = null;
-function openModal(title, body, cb) {
-  document.getElementById('modal-title').textContent = title;
-  document.getElementById('modal-body').textContent = body;
-  _modalCb = cb;
-  document.getElementById('modal').classList.add('open');
-}
-document.getElementById('modal-cancel').addEventListener('click', () => {
-  document.getElementById('modal').classList.remove('open'); _modalCb=null;
-});
-document.getElementById('modal-confirm').addEventListener('click', async () => {
-  document.getElementById('modal').classList.remove('open');
-  if (_modalCb) { await _modalCb(); _modalCb=null; }
-});
-
-// ══════════════════════════════════════════════════════════
-// ACTIVITY LOG
-// ══════════════════════════════════════════════════════════
-function addLog(text, type='') {
-  const lb = document.getElementById('log-box');
-  const el = document.createElement('div');
-  el.className='log-entry'+(type?' '+type:'');
-  const t = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-  el.textContent=`[${t}] ${text}`;
-  lb.prepend(el);
-  while(lb.children.length>40) lb.removeChild(lb.lastChild);
-}
-
-// ══════════════════════════════════════════════════════════
-// TOAST
-// ══════════════════════════════════════════════════════════
-function toast(msg, type='') {
-  const t = document.getElementById('toast');
-  t.textContent=msg; t.className='toast show'+(type?' '+type:'');
-  clearTimeout(t._t); t._t=setTimeout(()=>t.className='toast',2800);
-}
-function showErr(el, msg) { el.textContent=msg; el.style.display='block'; }
-
-// ══════════════════════════════════════════════════════════
-// UTILS
-// ══════════════════════════════════════════════════════════
-const PALS = [
-  ['#1a3a2a','#4ade80'],['#1a2d3d','#60a5fa'],['#3a1a1a','#f87171'],
-  ['#2a1a3d','#c084fc'],['#3a2a1a','#fbbf24'],['#1a3a3a','#34d399'],['#3a2a2a','#fb923c'],
+// ══════════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════════
+const PALETTES = [
+  ['#1a2e20','#4ade80'],['#1a2335','#60a5fa'],['#2d1a1a','#f87171'],
+  ['#231a2d','#c084fc'],['#2d251a','#fbbf24'],['#1a2d2d','#34d399'],
+  ['#2d1a23','#f472b6'],['#1a1d2d','#818cf8'],
 ];
-function pal(id) {
-  let h=0; const s=String(id);
-  for(let i=0;i<s.length;i++) h=(h<<5)-h+s.charCodeAt(i);
-  return PALS[Math.abs(h)%PALS.length];
-}
-function initials2(name='') { return (name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?'; }
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function catLabel(c) {
-  return {education:'🎓 Education',ecommerce:'🛍️ E-Commerce',community:'💬 Community',gaming:'🎮 Gaming',news:'📰 News',business:'💼 Business',health:'🏥 Health'}[c]||c||'—';
-}
-function relTime(iso) {
-  if (!iso) return '';
-  const d = new Date(iso), now = new Date();
+function pal(id) { return PALETTES[Math.abs(id||0)%PALETTES.length]; }
+function initials(name) { return (name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+function timeStr(ts) {
+  if (!ts) return '';
+  const d = new Date(ts*1000), now = new Date();
   if (d.toDateString()===now.toDateString()) return d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
   return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
 }
+function fullTime(ts) {
+  if (!ts) return '';
+  return new Date(ts*1000).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+}
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function renderUserList(query='') {
+  const ul = document.getElementById('user-list');
+  const list = Object.values(users).filter(u =>
+    !query || u.name.toLowerCase().includes(query.toLowerCase()) ||
+    (u.username||'').toLowerCase().includes(query.toLowerCase())
+  ).sort((a,b) => (b.msgs[b.msgs.length-1]?.date||0) - (a.msgs[a.msgs.length-1]?.date||0));
+
+  if (!list.length) { ul.innerHTML = '<div class="sidebar-empty">Abhi tak koi user nahi aaya 💤</div>'; return; }
+  ul.innerHTML = '';
+  list.forEach(u => {
+    const last = u.msgs[u.msgs.length-1];
+    const preview = last ? (last.out?'↗ ':'') + (last.text||`[${last.type}]`) : '—';
+    const [bg,fg] = pal(parseInt(u.chatId));
+    const blocked = blockedUsers.has(u.chatId);
+    const el = document.createElement('div');
+    el.className = 'uitem' + (u.chatId===currentChatId?' active':'') + (blocked?' u-blocked':'');
+    el.dataset.cid = u.chatId;
+    el.innerHTML = `
+      <div class="u-av" style="background:${bg};color:${fg};">${initials(u.name)}</div>
+      <div class="u-meta">
+        <div class="u-nm">${escHtml(u.name)}${u.username?`<span style="color:var(--text3);font-weight:400;font-size:10px;"> @${escHtml(u.username)}</span>`:''}</div>
+        <div class="u-pr">${escHtml(preview.slice(0,42))}${preview.length>42?'…':''}</div>
+      </div>
+      <div class="u-right">
+        <span class="u-tm">${timeStr(last?.date)}</span>
+        ${u.unread>0?`<span class="u-bdg">${u.unread}</span>`:''}
+      </div>
+    `;
+    el.addEventListener('click', () => { openChat(u.chatId); closeSidebar(); });
+    ul.appendChild(el);
+  });
+  document.getElementById('tb-users').textContent = list.length;
+  document.getElementById('s-users').textContent = list.length;
+}
+
+function openChat(cid) {
+  currentChatId = cid;
+  const u = users[cid];
+  if (!u) return;
+  u.unread = 0;
+  saveUserToDB(u);
+
+  document.querySelectorAll('.uitem').forEach(el => el.classList.toggle('active', el.dataset.cid===cid));
+  document.getElementById('no-chat').style.display = 'none';
+  document.getElementById('owner-panel').style.display = 'none';
+  const cv = document.getElementById('chat-view');
+  cv.style.display = 'flex';
+
+  const [bg,fg] = pal(parseInt(cid));
+  const av = document.getElementById('ch-av');
+  Object.assign(av.style,{width:'34px',height:'34px',borderRadius:'10px',background:bg,color:fg,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:'700',fontSize:'14px'});
+  av.textContent = initials(u.name);
+  document.getElementById('ch-name').textContent = u.name;
+  document.getElementById('ch-sub').textContent = (u.username?`@${u.username} · `:'') + `ID: ${cid}`;
+  document.getElementById('block-btn').textContent = '🚫 ' + (blockedUsers.has(cid)?'Unblock':'Block');
+  
+  const uip = document.getElementById('user-info-sec');
+  uip.style.display = '';
+  document.getElementById('user-info-card').innerHTML = `
+    <div class="uic-row"><span class="uic-k">Chat ID</span><span class="uic-v">${cid}</span></div>
+    ${u.username?`<div class="uic-row"><span class="uic-k">Username</span><span class="uic-v">@${escHtml(u.username)}</span></div>`:''}
+    <div class="uic-row"><span class="uic-k">Language</span><span class="uic-v">${u.langCode||'—'}</span></div>
+    <div class="uic-row"><span class="uic-k">Messages</span><span class="uic-v">${u.msgs.length}</span></div>
+    <div class="uic-row"><span class="uic-k">Status</span><span class="uic-v" style="color:${blockedUsers.has(cid)?'var(--red)':'var(--green)'}">${blockedUsers.has(cid)?'Blocked':'Active'}</span></div>
+  `;
+  renderMessages(cid);
+  updateStats();
+  document.getElementById('msg-ta').focus();
+}
+
+function renderMessages(cid) {
+  const u = users[cid]; if (!u) return;
+  const area = document.getElementById('messages');
+  area.innerHTML = '';
+  let lastDate = '';
+  const typeIcons = {photo:'🖼️',video:'🎬',document:'📎',audio:'🎵',voice:'🎤',sticker:'🎭',video_note:'📹',location:'📍',contact:'👤',poll:'📊'};
+  u.msgs.forEach(msg => {
+    const d = new Date((msg.date||0)*1000);
+    const ds = d.toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+    if (ds!==lastDate) {
+      const sep = document.createElement('div');
+      sep.className = 'date-sep';
+      sep.innerHTML = `<span>${ds}</span>`;
+      area.appendChild(sep); lastDate = ds;
+    }
+    const row = document.createElement('div');
+    row.className = 'msg-row' + (msg.out?' out':'');
+    let inner = '';
+    if (msg.type!=='text') {
+      inner += `<div class="media-badge">${typeIcons[msg.type]||'📎'} ${msg.type}</div>`;
+    }
+    if (msg.text) inner += `<div>${escHtml(msg.text)}</div>`;
+    inner += `<span class="bubble-time">${fullTime(msg.date)}</span>`;
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble' + (msg.out?' out':' in');
+    bubble.innerHTML = inner;
+    row.appendChild(bubble);
+    area.appendChild(row);
+  });
+  area.scrollTop = area.scrollHeight;
+}
+
+// ══════════════════════════════════════════════════════
+// SEND
+// ══════════════════════════════════════════════════════
+const ta = () => document.getElementById('msg-ta');
+ta()?.addEventListener?.('keydown', e => { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doSend();} });
+document.addEventListener('DOMContentLoaded', () => {
+  const t = document.getElementById('msg-ta');
+  t.addEventListener('keydown', e => { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doSend();} });
+  t.addEventListener('input', () => { t.style.height='auto'; t.style.height=Math.min(t.scrollHeight,110)+'px'; });
+});
+
+async function doSend() {
+  if (!currentChatId) return;
+  const t = document.getElementById('msg-ta');
+  const text = t.value.trim(); if (!text) return;
+  const btn = document.getElementById('send-btn');
+  btn.disabled = true;
+  try {
+    const res = await TG('sendMessage', { chat_id: currentChatId, text });
+    if (res.ok) {
+      const m = { msgId: res.result.message_id, text, type:'text', date:Math.floor(Date.now()/1000), out:true };
+      users[currentChatId].msgs.push(m);
+      sentCount++;
+      t.value = ''; t.style.height = 'auto';
+      await saveMsgToDB(currentChatId, m);
+      renderMessages(currentChatId);
+      renderUserList(document.getElementById('user-search').value);
+      updateStats();
+      addLog(`↗ Sent to ${users[currentChatId].name}: ${text.slice(0,30)}`, 'ok');
+    } else throw new Error(res.description);
+  } catch(e) { showToast('Send failed: '+e.message,'err'); addLog('Send err: '+e.message,'err'); }
+  btn.disabled = false;
+  document.getElementById('msg-ta').focus();
+}
+
+// ══════════════════════════════════════════════════════
+// BLOCK / DELETE
+// ══════════════════════════════════════════════════════
+function toggleBlock() {
+  if (!currentChatId) return;
+  const u = users[currentChatId];
+  if (blockedUsers.has(currentChatId)) {
+    blockedUsers.delete(currentChatId);
+    showToast(u.name+' unblocked','ok');
+    document.getElementById('block-btn').textContent = '🚫 Block';
+  } else {
+    blockedUsers.add(currentChatId);
+    showToast(u.name+' blocked','err');
+    document.getElementById('block-btn').textContent = '✅ Unblock';
+    addLog('Blocked: '+u.name,'err');
+  }
+  saveUserToDB(u);
+  renderUserList();
+}
+function deleteUserMsgs() {
+  if (!currentChatId) return;
+  confirmModal('Clear Chat?', 'Is user ke saare messages dashboard se hata jaenge (Telegram pe nahi).', async () => {
+    users[currentChatId].msgs = [];
+    if (SB && users[currentChatId].db_id) {
+      await SB.from('messages').delete().eq('user_id', users[currentChatId].db_id);
+    }
+    renderMessages(currentChatId);
+    addLog('Cleared chat: '+users[currentChatId].name);
+    showToast('Chat cleared');
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// BROADCAST
+// ══════════════════════════════════════════════════════
+async function doBroadcast() {
+  const text = document.getElementById('bc-ta').value.trim();
+  if (!text) { showToast('Message likho pehle','err'); return; }
+  const uList = Object.values(users).filter(u => !blockedUsers.has(u.chatId));
+  if (!uList.length) { showToast('Koi active user nahi','err'); return; }
+  const btn = document.getElementById('bc-btn');
+  const res = document.getElementById('bc-res');
+  btn.disabled = true; btn.textContent = 'Sending...';
+  res.style.display = 'none';
+  let ok=0, fail=0;
+  for (const u of uList) {
+    try {
+      const r = await TG('sendMessage', {chat_id: u.chatId, text});
+      if (r.ok) {
+        ok++; sentCount++;
+        const m = {msgId:r.result.message_id,text,type:'text',date:Math.floor(Date.now()/1000),out:true};
+        u.msgs.push(m);
+        await saveMsgToDB(u.chatId, m);
+      } else fail++;
+      await new Promise(r=>setTimeout(r,35));
+    } catch{ fail++; }
+  }
+  // Log broadcast
+  if (SB && SESSION.admin_id) {
+    await SB.from('broadcast_log').insert({admin_id:SESSION.admin_id,message:text,sent_count:ok,fail_count:fail,created_at:new Date().toISOString()});
+  }
+  btn.disabled = false; btn.textContent = '📢 Broadcast to All';
+  res.style.display = '';
+  res.className = 'bc-res' + (fail===0?'':' fail');
+  res.textContent = `✅ ${ok} delivered${fail>0?` · ❌ ${fail} failed`:''}`;
+  addLog(`Broadcast: ${ok}/${uList.length}`, 'ok');
+  if (currentChatId) renderMessages(currentChatId);
+  renderUserList();
+  updateStats();
+}
+
+// ══════════════════════════════════════════════════════
+// OWNER PANEL
+// ══════════════════════════════════════════════════════
+function toggleOwnerView() {
+  isOwnerView = !isOwnerView;
+  if (isOwnerView) showOwnerPanel();
+  else {
+    document.getElementById('owner-panel').style.display = 'none';
+    document.getElementById('no-chat').style.display = 'flex';
+    document.getElementById('view-owner-btn').textContent = '👁 All Bots';
+  }
+}
+function showOwnerPanel() {
+  document.getElementById('no-chat').style.display = 'none';
+  document.getElementById('chat-view').style.display = 'none';
+  document.getElementById('owner-panel').style.display = 'block';
+  document.getElementById('view-owner-btn').textContent = '← Back';
+  loadOwnerPanel();
+}
+async function loadOwnerPanel() {
+  if (!SB) return;
+  const grid = document.getElementById('op-grid');
+  grid.innerHTML = '<div style="color:var(--text3);font-size:13px;grid-column:1/-1;text-align:center;padding:40px;">Loading...</div>';
+  try {
+    const { data: admins } = await SB.from('admins').select('*, bot_users(count), messages(count)');
+    if (!admins || !admins.length) {
+      grid.innerHTML = '<div style="color:var(--text3);font-size:13px;grid-column:1/-1;text-align:center;padding:40px;">Koi admin registered nahi hai abhi.</div>';
+      document.getElementById('op-total').textContent = '0 admins, 0 bots registered';
+      return;
+    }
+    document.getElementById('op-total').textContent = `${admins.length} admin${admins.length>1?'s':''} registered`;
+    grid.innerHTML = '';
+    admins.forEach(admin => {
+      const bi = admin.bot_info ? JSON.parse(admin.bot_info) : null;
+      const [bg,fg] = pal(admin.id);
+      const userCount = admin.bot_users?.[0]?.count || 0;
+      const msgCount = admin.messages?.[0]?.count || 0;
+      const purposeIcons = {support:'🎧',ecommerce:'🛒',community:'👥',education:'📚',gaming:'🎮',finance:'💰',general:'🤖'};
+      const card = document.createElement('div');
+      card.className = 'op-card';
+      card.innerHTML = `
+        <div class="op-card-hdr">
+          <div class="op-av" style="background:${bg};color:${fg};">${initials(admin.name)}</div>
+          <div>
+            <div class="op-name">${escHtml(admin.name)}</div>
+            <div class="op-meta">${escHtml(admin.email)}</div>
+            <div class="op-meta" style="margin-top:2px;">${purposeIcons[admin.purpose]||'🤖'} ${admin.purpose||'general'} · @${bi?.username||'unknown'}</div>
+          </div>
+        </div>
+        <div class="op-stats">
+          <div class="op-stat"><div class="op-sv" style="color:var(--acc)">${userCount}</div><div class="op-sl">Users</div></div>
+          <div class="op-stat"><div class="op-sv" style="color:var(--blue)">${msgCount}</div><div class="op-sl">Msgs</div></div>
+          <div class="op-stat"><div class="op-sv" style="color:var(--text3)">${new Date(admin.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</div><div class="op-sl">Joined</div></div>
+        </div>
+        <div class="op-actions">
+          <button class="op-act ban" onclick="ownerBanAdmin(${admin.id},'${escHtml(admin.name)}')">🚫 Ban</button>
+          <button class="op-act del" onclick="ownerDeleteAdmin(${admin.id},'${escHtml(admin.name)}')">🗑 Delete</button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  } catch(e) {
+    grid.innerHTML = `<div style="color:var(--red);font-size:13px;grid-column:1/-1;text-align:center;padding:40px;">Error: ${e.message}<br><small style="color:var(--text3);">Supabase tables exist karte hain? Neeche SQL run karo.</small></div>`;
+  }
+}
+
+function ownerBanAdmin(id, name) {
+  confirmModal(`Ban ${name}?`, 'Is admin ka access block ho jaega. Unke users aur messages safe rahenge.', async () => {
+    if (SB) await SB.from('admins').update({is_banned:true}).eq('id',id);
+    showToast(name+' banned','err');
+    loadOwnerPanel();
+  });
+}
+function ownerDeleteAdmin(id, name) {
+  confirmModal(`Delete ${name}?`, `⚠️ Ye action PERMANENT hai. ${name} ka account, saare users aur messages delete ho jaenge.`, async () => {
+    if (SB) {
+      await SB.from('messages').delete().eq('admin_id',id);
+      await SB.from('bot_users').delete().eq('admin_id',id);
+      await SB.from('admins').delete().eq('id',id);
+    }
+    showToast(name+' deleted','err');
+    loadOwnerPanel();
+  }, true);
+}
+
+// ══════════════════════════════════════════════════════
+// STATS / POLL / LOG / TOAST / MODAL
+// ══════════════════════════════════════════════════════
+function updateStats() {
+  const uC = Object.keys(users).length;
+  const mC = Object.values(users).reduce((a,u)=>a+u.msgs.length,0);
+  const ur = Object.values(users).reduce((a,u)=>a+u.unread,0);
+  ['s-users'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=uC;});
+  ['s-msgs'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=mC;});
+  const sue=document.getElementById('s-unread');if(sue)sue.textContent=ur;
+  const ss=document.getElementById('s-sent');if(ss)ss.textContent=sentCount;
+  const tbu=document.getElementById('tb-users');if(tbu)tbu.textContent=uC;
+}
+function startPoll() {
+  stopPoll();
+  if (document.getElementById('auto-poll')?.checked) pollTimer = setInterval(fetchUpdates,5000);
+}
+function stopPoll() { if (pollTimer){clearInterval(pollTimer);pollTimer=null;} }
+function togglePoll() {
+  if (document.getElementById('auto-poll').checked){startPoll();addLog('Auto-refresh ON','ok');}
+  else{stopPoll();addLog('Auto-refresh OFF');}
+}
+function addLog(text,type='') {
+  const ll = document.getElementById('log-list');
+  if (!ll) return;
+  const el = document.createElement('div');
+  el.className = 'log-item'+(type?' '+type:'');
+  el.textContent = `[${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}] ${text}`;
+  ll.prepend(el);
+  while(ll.children.length>30) ll.removeChild(ll.lastChild);
+}
+let toastTimer;
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show'+(type?' '+type:'');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.className='toast',2800);
+}
+let modalCallback = null;
+function confirmModal(title, body, cb, isDanger=false) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').textContent = body;
+  const btn = document.getElementById('modal-confirm');
+  btn.className = 'modal-btn '+(isDanger?'danger':'confirm');
+  btn.textContent = isDanger ? '⚠️ Delete Forever' : 'Confirm';
+  modalCallback = cb;
+  document.getElementById('modal').classList.add('show');
+}
+document.getElementById('modal-confirm').addEventListener('click', async ()=>{
+  closeModal();
+  if (modalCallback) { await modalCallback(); modalCallback=null; }
+});
+function closeModal() { document.getElementById('modal').classList.remove('show'); }
+
+// ══════════════════════════════════════════════════════
+// MOBILE
+// ══════════════════════════════════════════════════════
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('mobile-overlay');
+  sb.classList.toggle('open');
+  ov.classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('mobile-overlay').classList.remove('show');
+}
+
+// ══════════════════════════════════════════════════════
+// LOGOUT
+// ══════════════════════════════════════════════════════
+function doLogout() {
+  stopPoll();
+  SESSION = null; users = {}; currentChatId = null; lastUpdateId = 0; sentCount = 0; blockedUsers = new Set();
+  localStorage.removeItem('botdesk_session');
+  if (SB) { SB.auth.signOut(); }
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('setup-screen').style.display = 'flex';
+  document.getElementById('user-list').innerHTML = '<div class="sidebar-empty">Login karo aur bot connect karo</div>';
+  document.body.className = '';
+}
+
+// ══════════════════════════════════════════════════════
+// SUPABASE SQL — CONSOLE HELPER
+// ══════════════════════════════════════════════════════
+// Run this SQL in your Supabase dashboard → SQL Editor:
+/*
+create table if not exists admins (
+  id bigint primary key generated always as identity,
+  auth_id uuid references auth.users(id) on delete cascade,
+  name text, email text, bot_token text,
+  purpose text, theme text,
+  bot_info text, is_banned boolean default false,
+  created_at timestamptz default now()
+);
+create table if not exists bot_users (
+  id bigint primary key generated always as identity,
+  admin_id bigint references admins(id) on delete cascade,
+  chat_id text, name text, username text,
+  lang_code text, chat_type text,
+  unread_count int default 0,
+  is_blocked boolean default false,
+  updated_at timestamptz default now(),
+  unique(admin_id, chat_id)
+);
+create table if not exists messages (
+  id bigint primary key generated always as identity,
+  admin_id bigint references admins(id) on delete cascade,
+  user_id bigint references bot_users(id) on delete cascade,
+  tg_message_id bigint, text text, msg_type text,
+  date_ts bigint, is_out boolean default false,
+  created_at timestamptz default now(),
+  unique(admin_id, tg_message_id)
+);
+create table if not exists broadcast_log (
+  id bigint primary key generated always as identity,
+  admin_id bigint references admins(id) on delete cascade,
+  message text, sent_count int, fail_count int,
+  created_at timestamptz default now()
+);
+-- Enable RLS (Row Level Security)
+alter table admins enable row level security;
+alter table bot_users enable row level security;
+alter table messages enable row level security;
+alter table broadcast_log enable row level security;
+-- Policies
+create policy "admins_own" on admins for all using (auth.uid() = auth_id);
+create policy "users_own" on bot_users for all using (admin_id in (select id from admins where auth_id = auth.uid()));
+create policy "msgs_own" on messages for all using (admin_id in (select id from admins where auth_id = auth.uid()));
+create policy "bc_own" on broadcast_log for all using (admin_id in (select id from admins where auth_id = auth.uid()));
+-- Service role bypass for owner
+create policy "service_all_admins" on admins for all to service_role using (true);
+create policy "service_all_users" on bot_users for all to service_role using (true);
+create policy "service_all_msgs" on messages for all to service_role using (true);
+*/
 </script>
 </body>
 </html>
