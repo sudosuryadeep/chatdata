@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aerivue — Admin Access</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --void:#040407;
+  --surface:#0c0c10;
+  --card:#111118;
+  --border:#1a1a24;
+  --border2:#252535;
+  --text:#ddd8f0;
+  --muted:#6b6880;
+  --hint:#3a3850;
+  --red:#ff4560;
+  --red2:#c92a3a;
+  --gold:#f5a623;
+  --glow:rgba(255,69,96,.15);
+  --glow2:rgba(245,166,35,.1);
+  --font-head:'Syne',sans-serif;
+  --font-body:'DM Sans',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+html,body{height:100%;background:var(--void);}
+body{
+  font-family:var(--font-body);
+  background:var(--void);
+  color:var(--text);
+  min-height:100vh;
+  overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* ─── BG ─── */
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.bg-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,69,96,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,69,96,.03) 1px, transparent 1px);
+  background-size:56px 56px;
+}
+.bg-orb1{
+  position:absolute;width:600px;height:600px;
+  top:-200px;right:-200px;border-radius:50%;
+  background:radial-gradient(circle, rgba(255,69,96,.08), rgba(201,42,58,.04), transparent 70%);
+  filter:blur(60px);
+  animation:drift1 15s ease-in-out infinite alternate;
+}
+.bg-orb2{
+  position:absolute;width:500px;height:500px;
+  bottom:-200px;left:-150px;border-radius:50%;
+  background:radial-gradient(circle, rgba(245,166,35,.06), transparent 70%);
+  filter:blur(80px);
+  animation:drift2 12s ease-in-out infinite alternate;
+}
+@keyframes drift1{from{transform:translate(0,0);}to{transform:translate(-30px,20px);}}
+@keyframes drift2{from{transform:translate(0,0);}to{transform:translate(20px,-30px);}}
+
+.scan{
+  position:absolute;left:0;right:0;height:1px;
+  background:linear-gradient(90deg, transparent, rgba(255,69,96,.3), transparent);
+  animation:scanV 8s linear infinite;
+}
+@keyframes scanV{0%{top:0;opacity:0;}5%{opacity:1;}95%{opacity:1;}100%{top:100%;opacity:0;}}
+
+/* corner decorations */
+.corner{position:absolute;width:20px;height:20px;}
+.corner::before,.corner::after{content:'';position:absolute;background:var(--red);opacity:.5;}
+.corner::before{width:2px;height:100%;}
+.corner::after{width:100%;height:2px;}
+.c-tl{top:20px;left:20px;}
+.c-tr{top:20px;right:20px;transform:scaleX(-1);}
+.c-bl{bottom:20px;left:20px;transform:scaleY(-1);}
+.c-br{bottom:20px;right:20px;transform:scale(-1);}
+
+/* ─── CARD ─── */
+.card{
+  position:relative;z-index:10;
+  width:min(420px,94vw);
+  background:linear-gradient(145deg, rgba(17,17,24,.98), rgba(10,10,16,1));
+  border:1px solid var(--border);
+  border-radius:16px;
+  overflow:hidden;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.03),
+    0 20px 60px rgba(0,0,0,.6),
+    0 0 100px rgba(255,69,96,.05);
+  animation:cardIn .6s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes cardIn{from{opacity:0;transform:scale(.95) translateY(20px);}to{opacity:1;transform:none;}}
+
+/* top accent bar */
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg, transparent, var(--red), var(--gold), transparent);
+}
+
+.card-head{
+  padding:32px 32px 24px;
+  border-bottom:1px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+}
+
+/* shield icon */
+.shield{
+  width:56px;height:56px;margin-bottom:16px;
+  background:rgba(255,69,96,.08);
+  border:1px solid rgba(255,69,96,.2);
+  border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 30px rgba(255,69,96,.1);
+  animation:shieldGlow 3s ease-in-out infinite alternate;
+}
+@keyframes shieldGlow{
+  from{box-shadow:0 0 20px rgba(255,69,96,.1);}
+  to{box-shadow:0 0 40px rgba(255,69,96,.2), 0 0 80px rgba(255,69,96,.06);}
+}
+
+/* brand */
+.brand-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.brand-name{
+  font-family:var(--font-head);font-size:20px;font-weight:800;
+  background:linear-gradient(135deg, #fff, rgba(255,69,96,.8));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.card-subtitle{
+  font-family:var(--font-mono);font-size:10px;color:var(--muted);
+  letter-spacing:2px;text-transform:uppercase;
+}
+
+/* warn box */
+.warn{
+  margin:0 32px 0;
+  padding:10px 14px;
+  background:rgba(255,69,96,.06);
+  border:1px solid rgba(255,69,96,.15);
+  border-radius:8px;
+  font-family:var(--font-mono);font-size:10px;color:rgba(255,100,120,.8);
+  line-height:1.8;
+}
+.warn strong{color:rgba(255,130,145,.9);}
+
+/* form */
+.card-body{padding:24px 32px 32px;}
+.field{margin-bottom:18px;}
+.field-label{
+  display:block;font-family:var(--font-mono);font-size:9px;font-weight:500;
+  letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;
+}
+.input-wrap{position:relative;}
+.field-input{
+  width:100%;background:rgba(255,255,255,.02);
+  border:1px solid var(--border);border-radius:10px;
+  padding:11px 14px;font-size:13px;font-family:var(--font-mono);
+  color:var(--text);outline:none;transition:all .2s;
+}
+.field-input:hover{border-color:var(--border2);}
+.field-input:focus{
+  border-color:rgba(255,69,96,.4);
+  background:rgba(255,69,96,.04);
+  box-shadow:0 0 0 3px rgba(255,69,96,.08);
+}
+.field-input::placeholder{color:var(--hint);}
+.eye{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:var(--muted);cursor:pointer;
+  padding:4px;transition:color .15s;
+  display:flex;align-items:center;
+}
+.eye:hover{color:var(--text);}
+
+.submit{
+  width:100%;margin-top:6px;padding:14px;
+  background:linear-gradient(135deg, #c9243a, #ff4560);
+  border:none;border-radius:10px;
+  color:#fff;font-family:var(--font-head);font-size:13px;font-weight:700;
+  letter-spacing:1px;cursor:pointer;
+  transition:all .25s;position:relative;overflow:hidden;
+  box-shadow:0 4px 20px rgba(255,69,96,.25), 0 0 40px rgba(255,69,96,.08);
+}
+.submit::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
+  transform:translateX(-100%);transition:transform .5s;
+}
+.submit:hover::before{transform:translateX(100%);}
+.submit:hover{transform:translateY(-1px);box-shadow:0 8px 30px rgba(255,69,96,.35);}
+.submit:active{transform:scale(.99);}
+.submit:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+
+.err-box{
+  margin-top:12px;padding:10px 14px;
+  background:rgba(255,69,96,.08);border:1px solid rgba(255,69,96,.2);
+  border-radius:8px;font-family:var(--font-mono);font-size:11px;
+  color:#f87171;display:none;
+}
+
+.spin-wrap{display:none;align-items:center;justify-content:center;gap:6px;margin-top:14px;}
+.spin-wrap.show{display:flex;}
+.dot-spin{width:5px;height:5px;border-radius:50%;background:var(--red);animation:dotPulse 1.2s ease infinite;}
+.dot-spin:nth-child(2){animation-delay:.2s;}
+.dot-spin:nth-child(3){animation-delay:.4s;}
+@keyframes dotPulse{0%,80%,100%{transform:scale(0);opacity:.3}40%{transform:scale(1);opacity:1}}
+
+.back-link{
+  display:block;text-align:center;
+  font-family:var(--font-mono);font-size:10px;
+  color:var(--hint);text-decoration:none;letter-spacing:1.5px;text-transform:uppercase;
+  margin-top:18px;transition:color .2s;
+}
+.back-link:hover{color:var(--muted);}
+
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(70px);
+  background:rgba(17,17,24,.98);border:1px solid var(--border);
+  color:var(--text);font-family:var(--font-mono);font-size:11px;
+  letter-spacing:1px;padding:10px 22px;border-radius:100px;z-index:999;
+  transition:transform .35s cubic-bezier(.22,1,.36,1);white-space:nowrap;
+  box-shadow:0 4px 20px rgba(0,0,0,.5);
+}
+.toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<div class="bg">
+  <div class="bg-grid"></div>
+  <div class="bg-orb1"></div>
+  <div class="bg-orb2"></div>
+  <div class="scan"></div>
+  <div class="corner c-tl"></div>
+  <div class="corner c-tr"></div>
+  <div class="corner c-bl"></div>
+  <div class="corner c-br"></div>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <div class="shield">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ff4560" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+    </div>
+    <div class="brand-row">
+      <span class="brand-name">Aerivue</span>
+      <span style="font-family:var(--font-mono);font-size:10px;color:var(--red);letter-spacing:2px;text-transform:uppercase;">Admin</span>
+    </div>
+    <div class="card-subtitle">Super Owner Access Panel</div>
+  </div>
+
+  <div class="card-body">
+    <div class="warn" style="margin:0 0 20px;">
+      ⚠ Restricted Zone — Sabhi bots aur admins ka complete control.<br>
+      Default password: <strong>owner2024</strong>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Owner Password</label>
+      <div class="input-wrap">
+        <input type="password" class="field-input" id="o-pass" placeholder="••••••••" style="padding-right:40px;" onkeydown="if(event.key==='Enter')doOwner()">
+        <button class="eye" onclick="toggleEye('o-pass')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">Supabase URL</label>
+      <input type="text" class="field-input" id="o-url" placeholder="https://xyz.supabase.co">
+    </div>
+    <div class="field">
+      <label class="field-label">Anon Key</label>
+      <input type="text" class="field-input" id="o-key" placeholder="eyJhbGci...">
+    </div>
+
+    <button class="submit" id="o-btn" onclick="doOwner()">Enter Owner Panel →</button>
+    <div class="err-box" id="o-err"></div>
+    <div class="spin-wrap" id="o-spin"><div class="dot-spin"></div><div class="dot-spin"></div><div class="dot-spin"></div></div>
+
+    <a href="/" class="back-link">← Back to Login</a>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function toggleEye(id){
+  const el=document.getElementById(id);
+  el.type=el.type==='password'?'text':'password';
+}
+
+let SB=null;
+function initSB(url,key){
+  if(!url||!key)return false;
+  try{ SB=supabase.createClient(url,key); localStorage.setItem('sb_url',url); localStorage.setItem('sb_key',key); return true;}
+  catch(e){return false;}
+}
+(()=>{const u=localStorage.getItem('sb_url'),k=localStorage.getItem('sb_key');if(u&&k)initSB(u,k);})();
+
+function showErr(id,msg){const e=document.getElementById(id);e.textContent='⚠ '+msg;e.style.display='block';}
+function hideErr(id){document.getElementById(id).style.display='none';}
+function setBusy(btnId,spinId,busy,label=''){
+  const b=document.getElementById(btnId);
+  b.disabled=busy;if(!busy&&label)b.textContent=label;
+  document.getElementById(spinId).classList.toggle('show',busy);
+}
+let toastT;
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+const OWNER_PASS='owner2024';
+async function doOwner(){
+  hideErr('o-err');
+  const pass=document.getElementById('o-pass').value;
+  const url=document.getElementById('o-url').value.trim()||localStorage.getItem('sb_url');
+  const key=document.getElementById('o-key').value.trim()||localStorage.getItem('sb_key');
+  if(pass!==OWNER_PASS){showErr('o-err','Wrong password. Try again.');return;}
+  if(!url||!key){showErr('o-err','Supabase URL aur Key dono chahiye');return;}
+  if(!initSB(url,key)){showErr('o-err','Supabase config invalid');return;}
+  setBusy('o-btn','o-spin',true);
+  const session={role:'owner',name:'Super Owner',theme:'owner'};
+  localStorage.setItem('bds',JSON.stringify(session));
+  toast('✓ Owner access granted...');
+  setTimeout(()=>window.location.href='dashboard-owner.html',700);
+}
+
+// Auto-restore owner session
+;(()=>{
+  const s=localStorage.getItem('bds');
+  if(!s)return;
+  try{
+    const sess=JSON.parse(s);
+    if(sess.role==='owner')window.location.href='dashboard-owner.html';
+  }catch(e){localStorage.removeItem('bds');}
+})();
+</script>
+</body>
+</html>
