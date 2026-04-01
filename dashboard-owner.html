@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>BotDesk — Owner Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700;900&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0f0a0c;--bg1:#181013;--bg2:#221519;--bg3:#2a1c20;
+  --border:#301820;--border2:#402028;
+  --acc:#e83a5a;--acc2:#f05070;--acc-dim:rgba(232,58,90,.1);
+  --ok:#5cb87a;--ok-dim:rgba(92,184,122,.1);
+  --warn:#c8a832;
+  --t1:#f5e8ec;--t2:#a07888;--t3:#584048;
+  --font:'Zen Kaku Gothic New',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--t1);font-family:var(--font);}
+#app{display:flex;flex-direction:column;height:100vh;}
+.topbar{height:48px;background:var(--bg1);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 18px;gap:12px;flex-shrink:0;}
+.tb-badge{background:var(--acc-dim);border:1px solid var(--acc);border-radius:3px;color:var(--acc);font-size:9px;font-weight:700;letter-spacing:2px;padding:2px 8px;font-family:var(--mono);}
+.tb-title{font-size:14px;font-weight:900;letter-spacing:-.3px;}
+.tb-title em{color:var(--acc);font-style:normal;}
+.tb-sep{width:1px;height:14px;background:var(--border2);}
+.tb-right{margin-left:auto;}
+.tb-btn{background:none;border:1px solid var(--border2);border-radius:4px;color:var(--t3);font-size:10px;font-family:var(--mono);padding:4px 10px;cursor:pointer;transition:all .15s;}
+.tb-btn:hover{border-color:var(--acc);color:var(--acc);}
+
+.main{flex:1;overflow-y:auto;padding:28px;}
+.main::-webkit-scrollbar{width:3px;}
+.main::-webkit-scrollbar-thumb{background:var(--border2);}
+
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
+.page-head h1{font-size:22px;font-weight:900;letter-spacing:-.5px;}
+.page-head h1 em{color:var(--acc);font-style:normal;}
+.page-head p{font-size:11px;color:var(--t3);font-family:var(--mono);margin-top:4px;}
+.refresh-btn{background:none;border:1px solid var(--border2);border-radius:4px;color:var(--t2);font-size:11px;font-family:var(--mono);padding:6px 14px;cursor:pointer;transition:all .15s;}
+.refresh-btn:hover{border-color:var(--acc);color:var(--acc);}
+
+/* summary stats */
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:24px;}
+.sum-c{background:var(--bg1);border:1px solid var(--border);border-radius:6px;padding:14px;}
+.sum-v{font-size:28px;font-weight:900;line-height:1;}
+.sum-l{font-size:9px;color:var(--t3);margin-top:4px;letter-spacing:1.5px;text-transform:uppercase;font-family:var(--mono);}
+
+/* bot grid */
+.bot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+.bot-card{background:var(--bg1);border:1px solid var(--border2);border-radius:8px;padding:18px;transition:border-color .15s;animation:fadeIn .3s ease both;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.bot-card:hover{border-color:var(--t3);}
+.bc-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.bc-av{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;flex-shrink:0;}
+.bc-name{font-size:14px;font-weight:900;}
+.bc-email{font-size:10px;color:var(--t3);font-family:var(--mono);margin-top:1px;}
+.bc-purpose{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-family:var(--mono);color:var(--t3);background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:2px 7px;margin-top:4px;}
+.bc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px;}
+.bc-stat{background:var(--bg2);border-radius:5px;padding:8px;text-align:center;}
+.bc-sv{font-size:18px;font-weight:900;line-height:1;}
+.bc-sl{font-size:9px;color:var(--t3);margin-top:2px;font-family:var(--mono);}
+.bc-meta{font-size:10px;color:var(--t3);font-family:var(--mono);margin-bottom:12px;line-height:1.8;}
+.bc-actions{display:flex;gap:6px;}
+.bc-act{flex:1;padding:7px;border-radius:5px;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer;transition:all .15s;letter-spacing:.5px;}
+.bc-act.ban{background:none;border:1px solid var(--border2);color:var(--t3);}
+.bc-act.ban:hover{border-color:var(--warn);color:var(--warn);}
+.bc-act.del{background:none;border:1px solid var(--border2);color:var(--t3);}
+.bc-act.del:hover{background:var(--acc-dim);border-color:var(--acc);color:var(--acc);}
+.bc-banned{opacity:.4;position:relative;}
+.bc-banned::after{content:'BANNED';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-8deg);font-size:16px;font-weight:900;color:var(--acc);font-family:var(--mono);letter-spacing:3px;border:2px solid var(--acc);padding:4px 10px;}
+.empty-state{grid-column:1/-1;text-align:center;padding:60px;color:var(--t3);font-family:var(--mono);font-size:13px;line-height:2;}
+
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
+.modal-bg.show{display:flex;}
+.modal{background:var(--bg1);border:1px solid var(--border2);border-radius:8px;padding:28px;width:min(420px,94vw);animation:fadeIn .2s ease;}
+.modal h3{font-size:16px;font-weight:900;margin-bottom:8px;}
+.modal p{font-size:12px;color:var(--t2);line-height:1.8;font-family:var(--mono);margin-bottom:20px;}
+.modal-btns{display:flex;gap:8px;}
+.m-btn{flex:1;padding:10px;border-radius:5px;font-family:var(--mono);font-size:11px;font-weight:700;cursor:pointer;border:none;transition:all .15s;letter-spacing:1px;}
+.m-btn.cancel{background:var(--bg2);color:var(--t2);}
+.m-btn.confirm{background:var(--acc);color:#fff;}
+
+/* toast */
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--bg2);border:1px solid var(--border2);color:var(--t1);font-size:10px;font-family:var(--mono);letter-spacing:1px;padding:8px 16px;border-radius:4px;z-index:9999;transition:transform .3s cubic-bezier(.22,1,.36,1);pointer-events:none;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.err{border-color:var(--acc);color:var(--acc);}
+.toast.ok{border-color:var(--ok);color:var(--ok);}
+
+/* sql box */
+.sql-box{background:var(--bg2);border:1px solid var(--border2);border-radius:6px;padding:16px;margin-top:24px;}
+.sql-box h3{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);font-family:var(--mono);margin-bottom:10px;}
+.sql-box pre{font-size:10px;color:var(--t2);font-family:var(--mono);line-height:1.7;white-space:pre-wrap;word-break:break-all;}
+
+@media(max-width:600px){.bot-grid{grid-template-columns:1fr;}.summary{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div style="font-size:18px;">🔐</div>
+    <div class="tb-title">Bot<em>Desk</em></div>
+    <div class="tb-badge">SUPER OWNER</div>
+    <div class="tb-sep"></div>
+    <div style="font-size:11px;color:var(--t3);font-family:var(--mono);">System Control Panel</div>
+    <div class="tb-right">
+      <button class="tb-btn" onclick="doOwnerLogout()">Logout</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="page-head">
+      <div>
+        <h1>System <em>Overview</em></h1>
+        <p id="total-info">Loading registered bots...</p>
+      </div>
+      <button class="refresh-btn" onclick="loadAll()">⟳ Refresh</button>
+    </div>
+
+    <div class="summary">
+      <div class="sum-c"><div class="sum-v" id="tot-admins" style="color:var(--acc)">—</div><div class="sum-l">Admins</div></div>
+      <div class="sum-c"><div class="sum-v" id="tot-users" style="color:#60a5fa">—</div><div class="sum-l">Total Users</div></div>
+      <div class="sum-c"><div class="sum-v" id="tot-msgs" style="color:var(--ok)">—</div><div class="sum-l">Messages</div></div>
+      <div class="sum-c"><div class="sum-v" id="tot-banned" style="color:var(--warn)">—</div><div class="sum-l">Banned</div></div>
+    </div>
+
+    <div class="bot-grid" id="bot-grid">
+      <div class="empty-state">Loading...</div>
+    </div>
+
+    <div class="sql-box">
+      <h3>📋 Supabase SQL — First Time Setup</h3>
+      <pre>-- Run this in Supabase → SQL Editor:
+
+create table if not exists admins (
+  id bigint primary key generated always as identity,
+  auth_id uuid references auth.users(id) on delete cascade,
+  name text, email text, bot_token text,
+  purpose text, theme text, bot_info text,
+  is_banned boolean default false,
+  created_at timestamptz default now()
+);
+create table if not exists bot_users (
+  id bigint primary key generated always as identity,
+  admin_id bigint references admins(id) on delete cascade,
+  chat_id text, name text, username text,
+  lang_code text, chat_type text,
+  unread_count int default 0,
+  is_blocked boolean default false,
+  updated_at timestamptz default now(),
+  unique(admin_id, chat_id)
+);
+create table if not exists messages (
+  id bigint primary key generated always as identity,
+  admin_id bigint references admins(id) on delete cascade,
+  user_id bigint references bot_users(id) on delete cascade,
+  tg_message_id bigint, text text, msg_type text,
+  date_ts bigint, is_out boolean default false,
+  unique(admin_id, tg_message_id)
+);
+create table if not exists broadcast_log (
+  id bigint primary key generated always as identity,
+  admin_id bigint references admins(id) on delete cascade,
+  message text, sent_count int, fail_count int,
+  created_at timestamptz default now()
+);
+-- Enable RLS
+alter table admins enable row level security;
+alter table bot_users enable row level security;
+alter table messages enable row level security;
+alter table broadcast_log enable row level security;
+-- Policies (admins see only their own data)
+create policy "own_admins" on admins for all using (auth.uid()=auth_id);
+create policy "own_users" on bot_users for all using (admin_id in (select id from admins where auth_id=auth.uid()));
+create policy "own_msgs" on messages for all using (admin_id in (select id from admins where auth_id=auth.uid()));
+create policy "own_bc" on broadcast_log for all using (admin_id in (select id from admins where auth_id=auth.uid()));</pre>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h3 id="m-title"></h3>
+    <p id="m-body"></p>
+    <div class="modal-btns">
+      <button class="m-btn cancel" onclick="closeModal()">Cancel</button>
+      <button class="m-btn confirm" id="m-confirm">Confirm</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+let SB=null,_mcb=null;
+const qs=s=>document.querySelector(s);
+
+// init SB from storage
+;(()=>{
+  const u=localStorage.getItem('sb_url'),k=localStorage.getItem('sb_key');
+  const s=localStorage.getItem('bds');
+  if(!s){window.location.href='index.html';return;}
+  try{const sess=JSON.parse(s);if(sess.role!=='owner'){window.location.href='index.html';return;}}catch(e){window.location.href='index.html';return;}
+  if(u&&k){try{SB=supabase.createClient(u,k);}catch(e){}}
+  if(!SB){alert('Supabase not configured. Go back and login again.');return;}
+  loadAll();
+})();
+
+const PALETTES=[['#1a2820','#4ade80'],['#1a1e30','#60a5fa'],['#2a1a1a','#f87171'],['#201a2a','#c084fc'],['#2a221a','#fbbf24'],['#1a2a2a','#34d399'],['#2a1a22','#f472b6'],['#1a1e2a','#818cf8']];
+function pal(id){return PALETTES[Math.abs(id||0)%PALETTES.length];}
+function ini(n){return(n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+const purposeIcon={support:'🎧',ecommerce:'🛒',community:'👥',education:'📚',gaming:'🎮',finance:'💰',general:'🤖'};
+
+let _tt;
+function toast(msg,type=''){
+  const t=qs('#toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');
+  clearTimeout(_tt);_tt=setTimeout(()=>t.className='toast',2600);
+}
+function confirmModal(title,body,cb,label='Confirm'){
+  qs('#m-title').textContent=title;qs('#m-body').textContent=body;
+  qs('#m-confirm').textContent=label;_mcb=cb;
+  qs('#modal').classList.add('show');
+}
+function closeModal(){qs('#modal').classList.remove('show');}
+qs('#m-confirm').addEventListener('click',async()=>{closeModal();if(_mcb){await _mcb();_mcb=null;}});
+
+async function loadAll(){
+  const grid=qs('#bot-grid');
+  grid.innerHTML='<div class="empty-state">Loading all bots...</div>';
+  try{
+    const{data:admins,error}=await SB.from('admins').select('*');
+    if(error)throw error;
+    if(!admins?.length){grid.innerHTML='<div class="empty-state">Koi admin registered nahi hai.<br>Sabse pehle register karo index.html se.</div>';qs('#tot-admins').textContent=0;return;}
+
+    // fetch counts separately
+    const{data:users}=await SB.from('bot_users').select('admin_id');
+    const{data:msgs}=await SB.from('messages').select('admin_id');
+    const userCounts={},msgCounts={};
+    (users||[]).forEach(r=>{userCounts[r.admin_id]=(userCounts[r.admin_id]||0)+1;});
+    (msgs||[]).forEach(r=>{msgCounts[r.admin_id]=(msgCounts[r.admin_id]||0)+1;});
+
+    const bannedCount=admins.filter(a=>a.is_banned).length;
+    qs('#tot-admins').textContent=admins.length;
+    qs('#tot-users').textContent=Object.values(userCounts).reduce((a,b)=>a+b,0);
+    qs('#tot-msgs').textContent=Object.values(msgCounts).reduce((a,b)=>a+b,0);
+    qs('#tot-banned').textContent=bannedCount;
+    qs('#total-info').textContent=admins.length+' admin'+(admins.length>1?'s':'')+' registered — '+bannedCount+' banned';
+
+    grid.innerHTML='';
+    admins.forEach((admin,i)=>{
+      const bi=admin.bot_info?JSON.parse(admin.bot_info):{};
+      const[bg,fg]=pal(admin.id);
+      const uc=userCounts[admin.id]||0, mc=msgCounts[admin.id]||0;
+      const joined=new Date(admin.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'2-digit'});
+      const card=document.createElement('div');
+      card.className='bot-card'+(admin.is_banned?' bc-banned':'');
+      card.style.animationDelay=(i*0.05)+'s';
+      card.innerHTML=`
+        <div class="bc-head">
+          <div class="bc-av" style="background:${bg};color:${fg};">${ini(admin.name)}</div>
+          <div>
+            <div class="bc-name">${esc(admin.name)}</div>
+            <div class="bc-email">${esc(admin.email)}</div>
+            <div class="bc-purpose">${purposeIcon[admin.purpose]||'🤖'} ${admin.purpose||'general'}</div>
+          </div>
+        </div>
+        <div class="bc-stats">
+          <div class="bc-stat"><div class="bc-sv" style="color:var(--acc)">${uc}</div><div class="bc-sl">users</div></div>
+          <div class="bc-stat"><div class="bc-sv" style="color:#60a5fa">${mc}</div><div class="bc-sl">msgs</div></div>
+          <div class="bc-stat"><div class="bc-sv" style="color:var(--t3)">${joined}</div><div class="bc-sl">joined</div></div>
+        </div>
+        <div class="bc-meta">Bot: @${bi.username||'unknown'} · ID: ${admin.id}</div>
+        <div class="bc-actions">
+          <button class="bc-act ban" onclick="banAdmin(${admin.id},'${esc(admin.name)}',${admin.is_banned})">${admin.is_banned?'Unban':'Ban'}</button>
+          <button class="bc-act del" onclick="delAdmin(${admin.id},'${esc(admin.name)}')">Delete Forever</button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }catch(e){
+    grid.innerHTML=`<div class="empty-state">Error: ${esc(e.message)}<br><span style="font-size:10px;opacity:.6;">Supabase tables exist karte hain? Neeche SQL run karo.</span></div>`;
+  }
+}
+
+async function banAdmin(id,name,isBanned){
+  if(isBanned){
+    await SB.from('admins').update({is_banned:false}).eq('id',id);
+    toast(name+' unbanned','ok');loadAll();return;
+  }
+  confirmModal('Ban '+name+'?','Is admin ka dashboard access block ho jaega. Data safe rahega.',async()=>{
+    await SB.from('admins').update({is_banned:true}).eq('id',id);
+    toast(name+' banned','err');loadAll();
+  },'Ban Admin');
+}
+
+async function delAdmin(id,name){
+  confirmModal('Delete '+name+' Forever?','⚠️ Ye PERMANENT hai. Is admin ke saare users, messages, aur data delete ho jaenge. Ye action undo nahi ho sakta.',async()=>{
+    await SB.from('messages').delete().eq('admin_id',id);
+    await SB.from('bot_users').delete().eq('admin_id',id);
+    await SB.from('broadcast_log').delete().eq('admin_id',id);
+    await SB.from('admins').delete().eq('id',id);
+    toast(name+' permanently deleted','err');loadAll();
+  },'Delete Forever');
+}
+
+function doOwnerLogout(){localStorage.removeItem('bds');window.location.href='index.html';}
+</script>
+</body>
+</html>

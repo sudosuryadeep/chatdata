@@ -3,1662 +3,485 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BotDesk — Telegram Bot Management</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<title>BotDesk — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700;900&family=Noto+Serif+JP:wght@200;300;400&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root {
-  --bg: #080b14;
-  --bg1: #0d1220;
-  --bg2: #111827;
-  --bg3: #1a2235;
-  --border: rgba(99,179,237,0.12);
-  --border-glow: rgba(99,179,237,0.35);
-  --text: #e8f0fe;
-  --text2: #8899bb;
-  --text3: #445577;
-  --accent: #63b3ed;
-  --accent2: #90cdf4;
-  --pink: #f687b3;
-  --purple: #b794f4;
-  --green: #68d391;
-  --yellow: #f6e05e;
-  --red: #fc8181;
-  --orange: #f6ad55;
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --ink:#0a0a0f;--paper:#f5f3ef;--mist:#e8e4de;--smoke:#c9c3b8;
+  --ash:#8a8278;--ghost:#4a4540;
+  --sakura:#e8a0b0;--sakura2:#f2c4ce;--sakura-dim:rgba(232,160,176,.12);
+  --indigo:#3d4a7a;--indigo-dim:rgba(61,74,122,.1);
+  --font-jp:'Zen Kaku Gothic New',sans-serif;
+  --font-serif:'Noto Serif JP',serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+html,body{height:100%;overflow:hidden;}
+body{font-family:var(--font-jp);background:var(--paper);color:var(--ink);position:relative;}
 
-  /* Category themes */
-  --cat-education: #63b3ed;
-  --cat-gaming: #b794f4;
-  --cat-health: #68d391;
-  --cat-finance: #f6e05e;
-  --cat-ecommerce: #f687b3;
-  --cat-entertainment: #f6ad55;
-  --cat-utility: #76e4f7;
+/* ─── BACKGROUND ─── */
+.bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.bg-grid{
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(10,10,15,.04) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(10,10,15,.04) 1px,transparent 1px);
+  background-size:40px 40px;
+}
+.bg-circle{
+  position:absolute;border-radius:50%;
+  background:radial-gradient(circle,var(--sakura-dim) 0%,transparent 70%);
+}
+.c1{width:600px;height:600px;top:-200px;right:-100px;opacity:.6;}
+.c2{width:400px;height:400px;bottom:-150px;left:-100px;opacity:.4;}
+.c3{width:200px;height:200px;top:40%;left:15%;opacity:.3;}
 
-  --sidebar-w: 260px;
-  --radius: 12px;
-  --radius-sm: 8px;
+/* petals */
+.petal{
+  position:absolute;width:8px;height:8px;border-radius:60% 40% 60% 40%;
+  background:var(--sakura2);opacity:0;
+  animation:fall linear infinite;
 }
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-body {
-  font-family: 'Syne', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-/* === ANIMATED BG === */
-.bg-grid {
-  position: fixed;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(99,179,237,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(99,179,237,0.03) 1px, transparent 1px);
-  background-size: 40px 40px;
-  pointer-events: none;
-  z-index: 0;
-}
-.bg-orb {
-  position: fixed;
-  border-radius: 50%;
-  filter: blur(80px);
-  pointer-events: none;
-  z-index: 0;
-  animation: float 8s ease-in-out infinite;
-}
-.bg-orb1 { width: 400px; height: 400px; background: rgba(99,179,237,0.06); top: -100px; right: -100px; }
-.bg-orb2 { width: 300px; height: 300px; background: rgba(183,148,244,0.05); bottom: 100px; left: -80px; animation-delay: -4s; }
-@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-20px)} }
-
-/* === SETUP SCREEN === */
-#setup-screen {
-  position: fixed; inset: 0; z-index: 1000;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--bg);
-}
-.setup-card {
-  background: var(--bg1);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 48px;
-  width: 100%;
-  max-width: 480px;
-  position: relative;
-  overflow: hidden;
-}
-.setup-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent), var(--purple), transparent);
-}
-.setup-logo {
-  display: flex; align-items: center; gap: 12px;
-  margin-bottom: 32px;
-}
-.setup-logo .icon {
-  width: 44px; height: 44px;
-  background: linear-gradient(135deg, var(--accent), var(--purple));
-  border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 20px;
-}
-.setup-logo h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
-.setup-logo span { color: var(--accent); }
-.setup-subtitle { font-family: 'Noto Sans JP', sans-serif; font-size: 13px; color: var(--text2); margin-top: 2px; }
-
-.setup-label { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-.setup-input {
-  width: 100%; padding: 12px 16px;
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); color: var(--text);
-  font-family: 'Space Mono', monospace; font-size: 13px;
-  transition: border-color 0.2s;
-  margin-bottom: 16px;
-}
-.setup-input:focus { outline: none; border-color: var(--accent); }
-.setup-input::placeholder { color: var(--text3); }
-
-.btn-primary {
-  width: 100%; padding: 13px;
-  background: linear-gradient(135deg, var(--accent), var(--purple));
-  border: none; border-radius: var(--radius-sm);
-  color: #fff; font-family: 'Syne', sans-serif;
-  font-size: 14px; font-weight: 700; cursor: pointer;
-  transition: opacity 0.2s, transform 0.1s;
-  letter-spacing: 0.5px;
-}
-.btn-primary:hover { opacity: 0.9; }
-.btn-primary:active { transform: scale(0.98); }
-.setup-note { font-size: 11px; color: var(--text3); margin-top: 16px; text-align: center; font-family: 'Space Mono', monospace; }
-.setup-note code { color: var(--accent2); }
-
-/* === AUTH SCREEN === */
-#auth-screen {
-  position: fixed; inset: 0; z-index: 999;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--bg);
-}
-.auth-card {
-  background: var(--bg1);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 40px;
-  width: 100%; max-width: 420px;
-  position: relative; overflow: hidden;
-}
-.auth-card::before {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--pink), var(--purple), transparent);
-}
-.auth-logo { text-align: center; margin-bottom: 32px; }
-.auth-logo .logo-icon {
-  width: 56px; height: 56px;
-  background: linear-gradient(135deg, var(--accent), var(--purple));
-  border-radius: 16px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 26px; margin: 0 auto 12px;
-  box-shadow: 0 0 30px rgba(99,179,237,0.3);
-}
-.auth-logo h2 { font-size: 22px; font-weight: 800; }
-.auth-logo p { font-size: 12px; color: var(--text2); margin-top: 4px; font-family: 'Noto Sans JP', sans-serif; }
-.auth-tabs { display: flex; background: var(--bg2); border-radius: var(--radius-sm); padding: 4px; margin-bottom: 24px; }
-.auth-tab {
-  flex: 1; padding: 8px; border: none; border-radius: 6px;
-  background: transparent; color: var(--text2);
-  font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
-  cursor: pointer; transition: all 0.2s;
-}
-.auth-tab.active { background: var(--bg3); color: var(--text); }
-.field-group { margin-bottom: 16px; }
-.field-label { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
-.field-input {
-  width: 100%; padding: 11px 14px;
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); color: var(--text);
-  font-family: 'Space Mono', monospace; font-size: 13px;
-  transition: border-color 0.2s;
-}
-.field-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99,179,237,0.1); }
-.field-input::placeholder { color: var(--text3); }
-.auth-submit {
-  width: 100%; padding: 12px;
-  background: linear-gradient(135deg, var(--accent), var(--purple));
-  border: none; border-radius: var(--radius-sm);
-  color: #fff; font-family: 'Syne', sans-serif;
-  font-size: 14px; font-weight: 700; cursor: pointer;
-  transition: opacity 0.2s;
-}
-.auth-submit:hover { opacity: 0.88; }
-.auth-error { font-size: 12px; color: var(--red); background: rgba(252,129,129,0.1); border: 1px solid rgba(252,129,129,0.2); border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; }
-
-/* === MAIN APP === */
-#app { display: none; }
-.app-layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
-
-/* === SIDEBAR === */
-.sidebar {
-  width: var(--sidebar-w); min-height: 100vh;
-  background: var(--bg1);
-  border-right: 1px solid var(--border);
-  display: flex; flex-direction: column;
-  position: fixed; left: 0; top: 0; bottom: 0;
-  z-index: 100;
-  transition: transform 0.3s ease;
-}
-.sidebar-header {
-  padding: 20px 18px;
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between;
-}
-.logo { display: flex; align-items: center; gap: 10px; }
-.logo-mark {
-  width: 36px; height: 36px;
-  background: linear-gradient(135deg, var(--accent), var(--purple));
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 17px;
-  box-shadow: 0 0 15px rgba(99,179,237,0.25);
-}
-.logo-text { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
-.logo-text span { color: var(--accent); }
-
-.bot-switcher {
-  margin: 16px 14px;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
-  cursor: pointer;
-  transition: border-color 0.2s;
-  position: relative;
-}
-.bot-switcher:hover { border-color: var(--border-glow); }
-.bot-switcher-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-.bot-switcher-name { font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; }
-.bot-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); display: inline-block; margin-right: 6px; }
-.bot-dropdown {
-  position: absolute; top: calc(100% + 6px); left: 0; right: 0;
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); overflow: hidden;
-  display: none; z-index: 50;
-}
-.bot-dropdown.open { display: block; }
-.bot-option {
-  padding: 10px 14px; font-size: 13px; cursor: pointer;
-  transition: background 0.15s;
-  display: flex; align-items: center; gap: 8px;
-}
-.bot-option:hover { background: var(--bg3); }
-.bot-option.active { color: var(--accent); }
-.add-bot-option { padding: 10px 14px; font-size: 12px; color: var(--accent); cursor: pointer; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 6px; }
-.add-bot-option:hover { background: var(--bg3); }
-
-.nav { flex: 1; padding: 8px 10px; overflow-y: auto; }
-.nav-section-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 1.5px; padding: 10px 8px 6px; }
-.nav-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 12px; border-radius: var(--radius-sm);
-  cursor: pointer; transition: all 0.15s;
-  font-size: 13px; font-weight: 500; color: var(--text2);
-  margin-bottom: 2px;
-}
-.nav-item:hover { background: var(--bg2); color: var(--text); }
-.nav-item.active { background: rgba(99,179,237,0.12); color: var(--accent); }
-.nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; }
-.nav-badge {
-  margin-left: auto;
-  background: var(--accent); color: #000;
-  font-size: 10px; font-weight: 700;
-  padding: 2px 7px; border-radius: 20px;
+@keyframes fall{
+  0%{transform:translateY(-20px) rotate(0deg) translateX(0);opacity:0;}
+  10%{opacity:.6;}
+  90%{opacity:.3;}
+  100%{transform:translateY(110vh) rotate(720deg) translateX(60px);opacity:0;}
 }
 
-.sidebar-footer {
-  padding: 14px;
-  border-top: 1px solid var(--border);
-}
-.user-info {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px; border-radius: var(--radius-sm);
-  background: var(--bg2); cursor: pointer;
-  transition: background 0.15s;
-}
-.user-info:hover { background: var(--bg3); }
-.user-avatar {
-  width: 34px; height: 34px; border-radius: 10px;
-  background: linear-gradient(135deg, var(--accent), var(--purple));
-  display: flex; align-items: center; justify-content: center;
-  font-size: 14px; font-weight: 700; flex-shrink: 0;
-}
-.user-name { font-size: 13px; font-weight: 600; }
-.user-role { font-size: 10px; color: var(--text2); margin-top: 1px; }
-.user-role.superadmin { color: var(--yellow); }
-.logout-btn { margin-left: auto; font-size: 16px; opacity: 0.5; }
-
-/* === MAIN CONTENT === */
-.main {
-  margin-left: var(--sidebar-w);
-  flex: 1; min-height: 100vh;
-  display: flex; flex-direction: column;
-}
-.topbar {
-  height: 60px; padding: 0 24px;
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between;
-  background: rgba(8,11,20,0.8); backdrop-filter: blur(12px);
-  position: sticky; top: 0; z-index: 90;
-}
-.topbar-left { display: flex; align-items: center; gap: 12px; }
-.topbar-title { font-size: 16px; font-weight: 700; }
-.topbar-sub { font-size: 12px; color: var(--text2); font-family: 'Space Mono', monospace; }
-.hamburger {
-  display: none; background: none; border: none;
-  color: var(--text); font-size: 20px; cursor: pointer;
-}
-.topbar-right { display: flex; align-items: center; gap: 10px; }
-.sa-badge {
-  display: flex; align-items: center; gap: 6px;
-  background: rgba(246,224,94,0.1); border: 1px solid rgba(246,224,94,0.3);
-  border-radius: 6px; padding: 5px 10px;
-  font-size: 12px; font-weight: 600; color: var(--yellow);
-  cursor: pointer; transition: background 0.2s;
-}
-.sa-badge:hover { background: rgba(246,224,94,0.15); }
-
-.page-content { padding: 24px; flex: 1; }
-
-/* === CARDS === */
-.stats-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
-  gap: 14px; margin-bottom: 28px;
-}
-.stat-card {
-  background: var(--bg1); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 20px;
-  position: relative; overflow: hidden;
-  transition: border-color 0.2s, transform 0.2s;
-}
-.stat-card:hover { border-color: var(--border-glow); transform: translateY(-2px); }
-.stat-card::after {
-  content: '';
-  position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
-  background: var(--accent-color, var(--accent));
-  opacity: 0.6;
-}
-.stat-icon { font-size: 22px; margin-bottom: 12px; }
-.stat-value { font-size: 28px; font-weight: 800; letter-spacing: -1px; }
-.stat-label { font-size: 12px; color: var(--text2); margin-top: 2px; font-family: 'Noto Sans JP', sans-serif; }
-.stat-change { font-size: 11px; margin-top: 6px; color: var(--green); }
-
-.section-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 14px;
-}
-.section-title { font-size: 14px; font-weight: 700; }
-.section-title span { color: var(--text2); font-weight: 400; font-family: 'Space Mono', monospace; font-size: 12px; margin-left: 8px; }
-
-/* === TABLES === */
-.table-card {
-  background: var(--bg1); border: 1px solid var(--border);
-  border-radius: var(--radius); overflow: hidden;
-}
-.table-toolbar {
-  padding: 14px 18px; border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; gap: 10px;
-}
-.search-input {
-  flex: 1; padding: 8px 12px;
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 6px; color: var(--text);
-  font-family: 'Space Mono', monospace; font-size: 12px;
-}
-.search-input:focus { outline: none; border-color: var(--accent); }
-.search-input::placeholder { color: var(--text3); }
-
-table { width: 100%; border-collapse: collapse; }
-thead th {
-  padding: 12px 18px; text-align: left;
-  font-size: 11px; font-weight: 600; color: var(--text3);
-  text-transform: uppercase; letter-spacing: 1px;
-  border-bottom: 1px solid var(--border);
-  white-space: nowrap;
-}
-tbody tr { border-bottom: 1px solid rgba(99,179,237,0.05); transition: background 0.1s; }
-tbody tr:hover { background: var(--bg2); }
-tbody tr:last-child { border-bottom: none; }
-tbody td { padding: 12px 18px; font-size: 13px; }
-
-/* === BADGES === */
-.badge {
-  display: inline-flex; align-items: center;
-  padding: 3px 9px; border-radius: 20px;
-  font-size: 11px; font-weight: 600;
-}
-.badge-green { background: rgba(104,211,145,0.15); color: var(--green); }
-.badge-red { background: rgba(252,129,129,0.15); color: var(--red); }
-.badge-yellow { background: rgba(246,224,94,0.15); color: var(--yellow); }
-.badge-blue { background: rgba(99,179,237,0.15); color: var(--accent); }
-.badge-purple { background: rgba(183,148,244,0.15); color: var(--purple); }
-.badge-pink { background: rgba(246,135,179,0.15); color: var(--pink); }
-.badge-orange { background: rgba(246,173,85,0.15); color: var(--orange); }
-
-/* === BUTTONS === */
-.btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 14px; border-radius: var(--radius-sm);
-  font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
-  cursor: pointer; transition: all 0.15s; border: none;
-}
-.btn-sm { padding: 5px 10px; font-size: 12px; }
-.btn-accent { background: var(--accent); color: #000; }
-.btn-accent:hover { background: var(--accent2); }
-.btn-ghost { background: var(--bg2); color: var(--text2); border: 1px solid var(--border); }
-.btn-ghost:hover { background: var(--bg3); color: var(--text); }
-.btn-danger { background: rgba(252,129,129,0.15); color: var(--red); border: 1px solid rgba(252,129,129,0.25); }
-.btn-danger:hover { background: rgba(252,129,129,0.25); }
-.btn-success { background: rgba(104,211,145,0.15); color: var(--green); border: 1px solid rgba(104,211,145,0.25); }
-.btn-success:hover { background: rgba(104,211,145,0.25); }
-
-/* === MODALS === */
-.modal-overlay {
-  position: fixed; inset: 0; z-index: 500;
-  background: rgba(8,11,20,0.85);
-  backdrop-filter: blur(6px);
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.2s;
-}
-.modal-overlay.open { opacity: 1; pointer-events: all; }
-.modal {
-  background: var(--bg1); border: 1px solid var(--border);
-  border-radius: 16px; padding: 28px;
-  width: 100%; max-width: 480px;
-  position: relative; overflow: hidden;
-  transform: translateY(10px); transition: transform 0.2s;
-}
-.modal-overlay.open .modal { transform: translateY(0); }
-.modal::before {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
-}
-.modal-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 20px;
-}
-.modal-title { font-size: 16px; font-weight: 700; }
-.modal-close {
-  width: 28px; height: 28px; border-radius: 6px;
-  background: var(--bg2); border: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; color: var(--text2); font-size: 14px;
-  transition: all 0.15s;
-}
-.modal-close:hover { background: var(--bg3); color: var(--text); }
-
-/* === CATEGORY THEMES === */
-.theme-education { --cat: var(--cat-education); }
-.theme-gaming { --cat: var(--cat-gaming); }
-.theme-health { --cat: var(--cat-health); }
-.theme-finance { --cat: var(--cat-finance); }
-.theme-ecommerce { --cat: var(--cat-ecommerce); }
-.theme-entertainment { --cat: var(--cat-entertainment); }
-.theme-utility { --cat: var(--cat-utility); }
-
-/* === CATEGORY PILLS === */
-.cat-pill {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 3px 10px; border-radius: 20px;
-  font-size: 11px; font-weight: 600;
-  border: 1px solid;
+/* ─── LAYOUT ─── */
+.screen{
+  position:fixed;inset:0;z-index:10;
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;
 }
 
-/* === SA PANEL === */
-.sa-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr));
-  gap: 14px;
+/* ─── CARD ─── */
+.card{
+  background:rgba(245,243,239,.88);
+  backdrop-filter:blur(20px);
+  border:1px solid rgba(201,195,184,.5);
+  border-radius:2px;
+  width:min(420px,94vw);
+  padding:0;
+  overflow:hidden;
+  box-shadow:0 2px 40px rgba(10,10,15,.08),0 0 0 1px rgba(255,255,255,.6);
+  animation:cardIn .6s cubic-bezier(.22,1,.36,1) both;
 }
-.sa-section-card {
-  background: var(--bg1); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 20px;
+@keyframes cardIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
+
+.card-header{
+  padding:32px 32px 0;
+  display:flex;flex-direction:column;align-items:flex-start;
+  border-bottom:1px solid var(--mist);margin-bottom:0;
 }
-.sa-section-title {
-  font-size: 13px; font-weight: 700; color: var(--text2);
-  text-transform: uppercase; letter-spacing: 1px;
-  margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+.brand-mark{
+  display:flex;align-items:center;gap:10px;margin-bottom:20px;
+}
+.brand-kanji{
+  font-family:var(--font-serif);font-size:28px;font-weight:200;
+  color:var(--ink);letter-spacing:-1px;line-height:1;
+}
+.brand-dot{width:5px;height:5px;border-radius:50%;background:var(--sakura);flex-shrink:0;}
+.brand-sub{font-size:10px;font-weight:300;color:var(--ash);letter-spacing:3px;text-transform:uppercase;font-family:var(--font-mono);}
+
+/* tabs */
+.tabs{display:flex;gap:0;width:100%;margin-top:4px;}
+.tab{
+  flex:1;padding:10px 0;font-size:11px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;font-family:var(--font-mono);
+  color:var(--smoke);background:none;border:none;border-bottom:2px solid transparent;
+  cursor:pointer;transition:all .2s;
+}
+.tab.active{color:var(--ink);border-bottom-color:var(--ink);}
+.tab:hover:not(.active){color:var(--ash);}
+.tab.owner-tab.active{color:var(--sakura);border-bottom-color:var(--sakura);}
+
+/* card body */
+.card-body{padding:28px 32px 32px;}
+
+/* form */
+.field{margin-bottom:18px;}
+.field-label{
+  display:block;font-size:9px;font-weight:700;letter-spacing:2.5px;
+  text-transform:uppercase;color:var(--ash);margin-bottom:7px;font-family:var(--font-mono);
+}
+.input-wrap{position:relative;}
+.field-input{
+  width:100%;background:transparent;
+  border:none;border-bottom:1.5px solid var(--mist);
+  padding:8px 0 8px 0;font-size:13px;font-family:var(--font-mono);
+  color:var(--ink);outline:none;transition:border-color .2s;
+  border-radius:0;
+}
+.field-input:focus{border-bottom-color:var(--ink);}
+.field-input::placeholder{color:var(--smoke);}
+.input-wrap .eye{
+  position:absolute;right:0;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:var(--smoke);cursor:pointer;
+  font-size:13px;transition:color .15s;padding:4px;
+}
+.input-wrap .eye:hover{color:var(--ash);}
+.field-select{
+  width:100%;background:transparent;border:none;
+  border-bottom:1.5px solid var(--mist);
+  padding:8px 0;font-size:13px;font-family:var(--font-mono);
+  color:var(--ink);outline:none;cursor:pointer;appearance:none;
+  transition:border-color .2s;
+}
+.field-select:focus{border-bottom-color:var(--ink);}
+.field-select option{background:var(--paper);}
+
+/* purpose grid */
+.purpose-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px;}
+.pc{
+  padding:10px 6px;border:1px solid var(--mist);border-radius:2px;
+  cursor:pointer;text-align:center;transition:all .15s;background:transparent;
+}
+.pc:hover{border-color:var(--smoke);background:var(--mist);}
+.pc.sel{border-color:var(--ink);background:var(--ink);}
+.pc.sel .pc-label{color:var(--paper);}
+.pc.sel .pc-icon{filter:grayscale(0) brightness(2);}
+.pc-icon{font-size:18px;display:block;margin-bottom:3px;}
+.pc-label{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ash);font-family:var(--font-mono);}
+
+/* sb config */
+.sb-toggle{
+  display:flex;align-items:center;gap:8px;margin-bottom:14px;cursor:pointer;
+  font-size:10px;color:var(--ash);letter-spacing:1.5px;text-transform:uppercase;font-family:var(--font-mono);
+  background:none;border:none;padding:0;
+}
+.sb-toggle .arr{transition:transform .2s;}
+.sb-toggle.open .arr{transform:rotate(90deg);}
+.sb-fields{display:none;}
+.sb-fields.open{display:block;}
+
+/* submit btn */
+.submit{
+  width:100%;margin-top:22px;padding:13px;
+  background:var(--ink);border:none;border-radius:0;
+  color:var(--paper);font-family:var(--font-mono);font-size:11px;
+  font-weight:700;letter-spacing:3px;text-transform:uppercase;
+  cursor:pointer;transition:all .2s;position:relative;overflow:hidden;
+}
+.submit::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);
+  transform:translateX(-100%);transition:transform .4s;
+}
+.submit:hover::after{transform:translateX(100%);}
+.submit:hover{background:var(--ghost);}
+.submit:active{transform:scale(.99);}
+.submit:disabled{opacity:.35;cursor:not-allowed;}
+.submit.owner-btn{background:linear-gradient(135deg,#8b1a3a,#c4365a);letter-spacing:2px;}
+.submit.owner-btn:hover{background:linear-gradient(135deg,#a01f45,#d4406a);}
+
+/* error */
+.err-box{
+  margin-top:12px;padding:9px 12px;background:rgba(200,80,80,.08);
+  border-left:2px solid rgba(200,80,80,.5);
+  font-size:11px;color:#9b3a3a;font-family:var(--font-mono);display:none;
+}
+/* hint */
+.hint{font-size:10px;color:var(--smoke);margin-top:14px;text-align:center;line-height:1.8;font-family:var(--font-mono);}
+.hint a{color:var(--ash);text-decoration:none;border-bottom:1px solid var(--mist);}
+.hint a:hover{color:var(--ink);}
+
+/* loading spinner */
+.spin-wrap{display:none;align-items:center;justify-content:center;gap:8px;margin-top:16px;}
+.spin-wrap.show{display:flex;}
+.dot-spin{width:4px;height:4px;border-radius:50%;background:var(--ash);animation:dotPulse 1.2s ease infinite;}
+.dot-spin:nth-child(2){animation-delay:.2s;}
+.dot-spin:nth-child(3){animation-delay:.4s;}
+@keyframes dotPulse{0%,80%,100%{transform:scale(0);opacity:.3}40%{transform:scale(1);opacity:1}}
+
+/* owner warning box */
+.owner-warn{
+  padding:10px 12px;background:rgba(232,160,176,.1);
+  border-left:2px solid var(--sakura);
+  font-size:10px;color:var(--ghost);font-family:var(--font-mono);
+  line-height:1.8;margin-bottom:18px;
 }
 
-/* === BROADCAST === */
-.broadcast-card {
-  background: var(--bg1); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 24px; max-width: 620px;
+/* toast */
+.toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);
+  background:var(--ink);color:var(--paper);font-size:11px;font-family:var(--font-mono);
+  letter-spacing:1px;padding:9px 20px;border-radius:0;z-index:999;
+  transition:transform .3s cubic-bezier(.22,1,.36,1);white-space:nowrap;
 }
-.broadcast-textarea {
-  width: 100%; min-height: 120px; padding: 14px;
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); color: var(--text);
-  font-family: 'Space Mono', monospace; font-size: 13px;
-  resize: vertical; transition: border-color 0.2s; margin-bottom: 14px;
-}
-.broadcast-textarea:focus { outline: none; border-color: var(--accent); }
-.broadcast-textarea::placeholder { color: var(--text3); }
-.broadcast-meta { font-size: 12px; color: var(--text2); margin-bottom: 14px; }
-
-/* === SETTINGS === */
-.settings-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(300px,1fr));
-  gap: 14px;
-}
-.settings-card {
-  background: var(--bg1); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 20px;
-}
-.settings-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 0; border-bottom: 1px solid var(--border);
-}
-.settings-row:last-child { border-bottom: none; }
-.settings-key { font-size: 13px; color: var(--text2); }
-.settings-val { font-size: 13px; font-weight: 600; font-family: 'Space Mono', monospace; }
-.toggle {
-  width: 40px; height: 22px; border-radius: 11px;
-  background: var(--bg3); border: 1px solid var(--border);
-  cursor: pointer; position: relative; transition: background 0.2s;
-}
-.toggle.on { background: var(--accent); }
-.toggle::after {
-  content: ''; position: absolute;
-  width: 16px; height: 16px; border-radius: 50%;
-  background: #fff; top: 2px; left: 2px;
-  transition: left 0.2s;
-}
-.toggle.on::after { left: 20px; }
-
-/* === LOADING / EMPTY === */
-.loading { text-align: center; padding: 40px; color: var(--text2); font-size: 13px; }
-.loading::before { content: '⟳'; display: block; font-size: 24px; margin-bottom: 8px; animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.empty-state { text-align: center; padding: 60px 20px; color: var(--text2); }
-.empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
-.empty-state p { font-size: 13px; }
-
-/* === TOAST === */
-.toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
-.toast {
-  background: var(--bg1); border: 1px solid var(--border);
-  border-radius: 10px; padding: 12px 16px;
-  font-size: 13px; display: flex; align-items: center; gap: 10px;
-  min-width: 260px; max-width: 360px;
-  animation: slideIn 0.25s ease; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-}
-.toast-success { border-color: rgba(104,211,145,0.3); }
-.toast-error { border-color: rgba(252,129,129,0.3); }
-.toast-info { border-color: rgba(99,179,237,0.3); }
-@keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-
-/* === OVERLAY backdrop for mobile === */
-.sidebar-overlay {
-  position: fixed; inset: 0; z-index: 99;
-  background: rgba(0,0,0,0.6);
-  display: none;
-}
-
-/* === MESSAGES FEED === */
-.messages-feed {
-  display: flex; flex-direction: column; gap: 8px;
-  max-height: 480px; overflow-y: auto;
-}
-.msg-item {
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 10px; padding: 12px 14px;
-  display: flex; gap: 12px; align-items: flex-start;
-}
-.msg-avatar {
-  width: 32px; height: 32px; border-radius: 8px;
-  background: linear-gradient(135deg, var(--accent), var(--purple));
-  display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 700; flex-shrink: 0;
-}
-.msg-content { flex: 1; min-width: 0; }
-.msg-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
-.msg-user { font-size: 13px; font-weight: 600; }
-.msg-time { font-size: 11px; color: var(--text3); font-family: 'Space Mono', monospace; }
-.msg-text { font-size: 12px; color: var(--text2); line-height: 1.5; word-break: break-word; }
-
-/* === WELCOME BANNER === */
-.welcome-banner {
-  background: linear-gradient(135deg, rgba(99,179,237,0.08), rgba(183,148,244,0.08));
-  border: 1px solid rgba(99,179,237,0.15);
-  border-radius: 16px; padding: 22px 24px;
-  margin-bottom: 24px; position: relative; overflow: hidden;
-}
-.welcome-banner::after {
-  content: '🤖';
-  position: absolute; right: 24px; top: 50%; transform: translateY(-50%);
-  font-size: 48px; opacity: 0.1;
-}
-.welcome-banner h2 { font-size: 20px; font-weight: 800; }
-.welcome-banner p { font-size: 13px; color: var(--text2); margin-top: 4px; font-family: 'Noto Sans JP', sans-serif; }
-
-/* === RESPONSIVE === */
-@media (max-width: 768px) {
-  .sidebar { transform: translateX(-100%); }
-  .sidebar.open { transform: translateX(0); }
-  .sidebar-overlay.open { display: block; }
-  .main { margin-left: 0; }
-  .hamburger { display: block; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .page-content { padding: 16px; }
-  .sa-grid { grid-template-columns: 1fr; }
-  .settings-grid { grid-template-columns: 1fr; }
-}
-
-/* === PAGE TRANSITIONS === */
-.page { display: none; }
-.page.active { display: block; animation: fadeUp 0.2s ease; }
-@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-
-/* Cat color helpers */
-.cat-education { color: var(--cat-education); border-color: rgba(99,179,237,0.3); background: rgba(99,179,237,0.08); }
-.cat-gaming { color: var(--cat-gaming); border-color: rgba(183,148,244,0.3); background: rgba(183,148,244,0.08); }
-.cat-health { color: var(--cat-health); border-color: rgba(104,211,145,0.3); background: rgba(104,211,145,0.08); }
-.cat-finance { color: var(--cat-finance); border-color: rgba(246,224,94,0.3); background: rgba(246,224,94,0.08); }
-.cat-ecommerce { color: var(--cat-ecommerce); border-color: rgba(246,135,179,0.3); background: rgba(246,135,179,0.08); }
-.cat-entertainment { color: var(--cat-entertainment); border-color: rgba(246,173,85,0.3); background: rgba(246,173,85,0.08); }
-.cat-utility { color: var(--cat-utility); border-color: rgba(118,228,247,0.3); background: rgba(118,228,247,0.08); }
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text3); }
-
-.jp-text { font-family: 'Noto Sans JP', sans-serif; }
-.mono { font-family: 'Space Mono', monospace; }
-
-/* select field */
-.field-select {
-  width: 100%; padding: 11px 14px;
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); color: var(--text);
-  font-family: 'Syne', sans-serif; font-size: 13px;
-  appearance: none; cursor: pointer;
-}
-.field-select:focus { outline: none; border-color: var(--accent); }
+.toast.show{transform:translateX(-50%) translateY(0);}
 </style>
 </head>
 <body>
 
-<div class="bg-grid"></div>
-<div class="bg-orb bg-orb1"></div>
-<div class="bg-orb bg-orb2"></div>
-
-<!-- TOAST CONTAINER -->
-<div class="toast-container" id="toastContainer"></div>
-
-<!-- SETUP SCREEN -->
-<div id="setup-screen">
-  <div class="setup-card">
-    <div class="setup-logo">
-      <div class="icon">🤖</div>
-      <div>
-        <h1>Bot<span>Desk</span></h1>
-        <div class="setup-subtitle">ボット管理プラットフォーム</div>
-      </div>
-    </div>
-    <div class="setup-label">Supabase Project URL</div>
-    <input class="setup-input" id="sb-url" placeholder="https://xxxxx.supabase.co" type="url">
-    <div class="setup-label">Supabase Anon Key</div>
-    <input class="setup-input" id="sb-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." type="password">
-    <button class="btn-primary" onclick="initSupabase()">🚀 Connect & Launch</button>
-    <p class="setup-note">
-      First time? Run the <code>SQL schema</code> in Supabase SQL Editor first.<br>
-      First registered user = 👑 SuperAdmin auto-promoted.
-    </p>
-    <details style="margin-top:18px;">
-      <summary style="cursor:pointer;font-size:12px;color:var(--text2);">📋 View SQL Schema</summary>
-      <pre style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:10px;color:var(--text2);margin-top:10px;overflow-x:auto;white-space:pre-wrap;font-family:'Space Mono',monospace;">-- Run in Supabase SQL Editor
-create table profiles (
-  id uuid references auth.users primary key,
-  email text, username text, role text default 'user',
-  created_at timestamptz default now()
-);
-create table bots (
-  id uuid primary key default gen_random_uuid(),
-  name text, token text, category text,
-  owner_id uuid references profiles(id),
-  active boolean default true,
-  created_at timestamptz default now()
-);
-create table bot_users (
-  id uuid primary key default gen_random_uuid(),
-  bot_id uuid references bots(id),
-  telegram_id text, username text,
-  first_name text, last_name text,
-  is_blocked boolean default false,
-  joined_at timestamptz default now()
-);
-create table messages (
-  id uuid primary key default gen_random_uuid(),
-  bot_id uuid references bots(id),
-  user_id uuid references bot_users(id),
-  text text, direction text default 'incoming',
-  sent_at timestamptz default now()
-);
--- Enable RLS & policies as needed
-alter table profiles enable row level security;
-alter table bots enable row level security;
-alter table bot_users enable row level security;
-alter table messages enable row level security;
-create policy "public_profiles" on profiles for all using (true) with check (true);
-create policy "public_bots" on bots for all using (true) with check (true);
-create policy "public_bot_users" on bot_users for all using (true) with check (true);
-create policy "public_messages" on messages for all using (true) with check (true);</pre>
-    </details>
-  </div>
+<div class="bg-canvas">
+  <div class="bg-grid"></div>
+  <div class="bg-circle c1"></div>
+  <div class="bg-circle c2"></div>
+  <div class="bg-circle c3"></div>
+  <!-- petals generated by JS -->
 </div>
 
-<!-- AUTH SCREEN -->
-<div id="auth-screen" style="display:none;">
-  <div class="auth-card">
-    <div class="auth-logo">
-      <div class="logo-icon">🤖</div>
-      <h2>BotDesk</h2>
-      <p>ようこそ — Telegram Bot Management Platform</p>
+<div class="screen">
+  <div class="card">
+    <div class="card-header">
+      <div class="brand-mark">
+        <div class="brand-kanji">ボット</div>
+        <div class="brand-dot"></div>
+        <div>
+          <div style="font-size:14px;font-weight:900;letter-spacing:-0.5px;">BotDesk</div>
+          <div class="brand-sub">Telegram Dashboard</div>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" id="tab-login" onclick="switchTab('login')">Login</button>
+        <button class="tab" id="tab-reg" onclick="switchTab('reg')">Register</button>
+        <button class="tab owner-tab" id="tab-owner" onclick="switchTab('owner')">Owner</button>
+      </div>
     </div>
-    <div id="auth-error" class="auth-error" style="display:none;"></div>
-    <div class="auth-tabs">
-      <button class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
-      <button class="auth-tab" onclick="switchAuthTab('register')">Register</button>
-    </div>
-    <div id="auth-login-form">
-      <div class="field-group">
-        <div class="field-label">Email</div>
-        <input class="field-input" id="login-email" type="email" placeholder="you@example.com">
-      </div>
-      <div class="field-group">
-        <div class="field-label">Password</div>
-        <input class="field-input" id="login-pass" type="password" placeholder="••••••••">
-      </div>
-      <button class="auth-submit" onclick="doLogin()">Login →</button>
-    </div>
-    <div id="auth-register-form" style="display:none;">
-      <div class="field-group">
-        <div class="field-label">Username</div>
-        <input class="field-input" id="reg-username" placeholder="coolbotmaster">
-      </div>
-      <div class="field-group">
-        <div class="field-label">Email</div>
-        <input class="field-input" id="reg-email" type="email" placeholder="you@example.com">
-      </div>
-      <div class="field-group">
-        <div class="field-label">Password</div>
-        <input class="field-input" id="reg-pass" type="password" placeholder="min 6 chars">
-      </div>
-      <button class="auth-submit" onclick="doRegister()">Create Account →</button>
-    </div>
-  </div>
-</div>
 
-<!-- MAIN APP -->
-<div id="app">
-  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-  <div class="app-layout">
-    <!-- SIDEBAR -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <div class="logo">
-          <div class="logo-mark">🤖</div>
-          <div class="logo-text">Bot<span>Desk</span></div>
-        </div>
-      </div>
-      <!-- Bot Switcher -->
-      <div class="bot-switcher" onclick="toggleBotDropdown()">
-        <div class="bot-switcher-label">Active Bot</div>
-        <div class="bot-switcher-name">
-          <span><span class="bot-dot"></span><span id="active-bot-name">No bot selected</span></span>
-          <span style="opacity:0.5;font-size:10px;">▾</span>
-        </div>
-        <div class="bot-dropdown" id="botDropdown"></div>
-      </div>
-      <!-- Nav -->
-      <nav class="nav">
-        <div class="nav-section-label">ダッシュボード</div>
-        <div class="nav-item active" onclick="navigate('dashboard')"><span class="nav-icon">⊞</span> Dashboard</div>
-        <div class="nav-item" onclick="navigate('messages')"><span class="nav-icon">💬</span> Messages <span class="nav-badge" id="msg-badge">0</span></div>
-        <div class="nav-item" onclick="navigate('users')"><span class="nav-icon">👥</span> Bot Users</div>
-        <div class="nav-section-label">管理</div>
-        <div class="nav-item" onclick="navigate('bots')"><span class="nav-icon">🤖</span> My Bots</div>
-        <div class="nav-item" onclick="navigate('broadcast')"><span class="nav-icon">📢</span> Broadcast</div>
-        <div class="nav-item" onclick="navigate('settings')"><span class="nav-icon">⚙</span> Settings</div>
-      </nav>
-      <div class="sidebar-footer">
-        <div class="user-info" onclick="navigate('settings')">
-          <div class="user-avatar" id="sidebar-avatar">?</div>
-          <div>
-            <div class="user-name" id="sidebar-username">Loading…</div>
-            <div class="user-role" id="sidebar-role">user</div>
-          </div>
-          <div class="logout-btn" onclick="event.stopPropagation();doLogout()" title="Logout">⏻</div>
-        </div>
-      </div>
-    </aside>
+    <div class="card-body">
 
-    <!-- MAIN -->
-    <main class="main">
-      <div class="topbar">
-        <div class="topbar-left">
-          <button class="hamburger" onclick="toggleSidebar()">☰</button>
-          <div>
-            <div class="topbar-title" id="topbar-title">Dashboard</div>
-            <div class="topbar-sub" id="topbar-sub">ようこそ</div>
+      <!-- LOGIN -->
+      <div id="pane-login">
+        <div class="field">
+          <label class="field-label">Email</label>
+          <input type="email" class="field-input" id="l-email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <div class="field">
+          <label class="field-label">Password</label>
+          <div class="input-wrap">
+            <input type="password" class="field-input" id="l-pass" placeholder="••••••••" style="padding-right:24px;" onkeydown="if(event.key==='Enter')doLogin()">
+            <button class="eye" onclick="toggleEye('l-pass')">○</button>
           </div>
         </div>
-        <div class="topbar-right">
-          <div class="sa-badge" id="sa-panel-btn" style="display:none;" onclick="navigate('sa-panel')">👑 Super Admin</div>
-        </div>
+        <button class="submit" id="l-btn" onclick="doLogin()">Enter →</button>
+        <div class="err-box" id="l-err"></div>
+        <div class="spin-wrap" id="l-spin"><div class="dot-spin"></div><div class="dot-spin"></div><div class="dot-spin"></div></div>
+        <div class="hint">Naya account? <a href="#" onclick="switchTab('reg');return false;">Register karo</a></div>
       </div>
-      <div class="page-content">
-        <!-- DASHBOARD PAGE -->
-        <div class="page active" id="page-dashboard">
-          <div class="welcome-banner">
-            <h2>Welcome back, <span id="welcome-name">Admin</span>! 👋</h2>
-            <p class="jp-text">あなたのボットが待っています — Your bots are ready.</p>
+
+      <!-- REGISTER -->
+      <div id="pane-reg" style="display:none;">
+        <div class="field">
+          <label class="field-label">Full Name</label>
+          <input type="text" class="field-input" id="r-name" placeholder="Rahul Sharma">
+        </div>
+        <div class="field">
+          <label class="field-label">Email</label>
+          <input type="email" class="field-input" id="r-email" placeholder="your@email.com">
+        </div>
+        <div class="field">
+          <label class="field-label">Password</label>
+          <div class="input-wrap">
+            <input type="password" class="field-input" id="r-pass" placeholder="Min 6 chars" style="padding-right:24px;">
+            <button class="eye" onclick="toggleEye('r-pass')">○</button>
           </div>
-          <div class="stats-grid" id="stats-grid">
-            <div class="stat-card" style="--accent-color:var(--accent)">
-              <div class="stat-icon">🤖</div>
-              <div class="stat-value" id="stat-bots">—</div>
-              <div class="stat-label">Active Bots</div>
-            </div>
-            <div class="stat-card" style="--accent-color:var(--purple)">
-              <div class="stat-icon">👥</div>
-              <div class="stat-value" id="stat-users">—</div>
-              <div class="stat-label">Total Users</div>
-            </div>
-            <div class="stat-card" style="--accent-color:var(--green)">
-              <div class="stat-icon">💬</div>
-              <div class="stat-value" id="stat-messages">—</div>
-              <div class="stat-label">Messages</div>
-            </div>
-            <div class="stat-card" style="--accent-color:var(--pink)">
-              <div class="stat-icon">🚫</div>
-              <div class="stat-value" id="stat-blocked">—</div>
-              <div class="stat-label">Blocked Users</div>
-            </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Bot Token</label>
+          <div class="input-wrap">
+            <input type="password" class="field-input" id="r-token" placeholder="123456789:ABC..." style="padding-right:24px;" autocomplete="off">
+            <button class="eye" onclick="toggleEye('r-token')">○</button>
           </div>
-          <div class="section-header">
-            <div class="section-title">Recent Messages <span id="recent-msgs-count"></span></div>
-          </div>
-          <div class="table-card">
-            <div class="messages-feed" id="recent-messages-feed" style="padding:14px;">
-              <div class="loading"></div>
-            </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Bot Purpose — Theme Select Karo</label>
+          <div class="purpose-grid" id="pgrid">
+            <div class="pc" data-p="support" data-theme="support" onclick="selPurpose(this)"><span class="pc-icon">🎧</span><span class="pc-label">Support</span></div>
+            <div class="pc" data-p="ecommerce" data-theme="ecommerce" onclick="selPurpose(this)"><span class="pc-icon">🛒</span><span class="pc-label">Shop</span></div>
+            <div class="pc" data-p="community" data-theme="community" onclick="selPurpose(this)"><span class="pc-icon">👥</span><span class="pc-label">Community</span></div>
+            <div class="pc" data-p="education" data-theme="education" onclick="selPurpose(this)"><span class="pc-icon">📚</span><span class="pc-label">Education</span></div>
+            <div class="pc" data-p="gaming" data-theme="gaming" onclick="selPurpose(this)"><span class="pc-icon">🎮</span><span class="pc-label">Gaming</span></div>
+            <div class="pc" data-p="finance" data-theme="finance" onclick="selPurpose(this)"><span class="pc-icon">💰</span><span class="pc-label">Finance</span></div>
+            <div class="pc" data-p="general" data-theme="general" onclick="selPurpose(this)" style="grid-column:span 3;"><span class="pc-icon">🤖</span><span class="pc-label">General</span></div>
           </div>
         </div>
 
-        <!-- MESSAGES PAGE -->
-        <div class="page" id="page-messages">
-          <div class="table-card">
-            <div class="table-toolbar">
-              <input class="search-input" placeholder="🔍 Search messages…" oninput="filterMessages(this.value)">
-              <button class="btn btn-ghost btn-sm" onclick="loadMessages()">↻ Refresh</button>
-            </div>
-            <div class="messages-feed" id="messages-feed" style="padding:14px; max-height:600px;">
-              <div class="loading"></div>
-            </div>
-          </div>
+        <button class="sb-toggle" id="sb-tog" onclick="toggleSB()"><span class="arr">▶</span> Supabase Config</button>
+        <div class="sb-fields" id="sb-fields">
+          <div class="field"><label class="field-label">Supabase URL</label><input type="text" class="field-input" id="r-sburl" placeholder="https://xyz.supabase.co"></div>
+          <div class="field"><label class="field-label">Anon Key</label><input type="text" class="field-input" id="r-sbkey" placeholder="eyJhbGci..."></div>
         </div>
 
-        <!-- USERS PAGE -->
-        <div class="page" id="page-users">
-          <div class="table-card">
-            <div class="table-toolbar">
-              <input class="search-input" placeholder="🔍 Search users…" oninput="filterUsers(this.value)">
-              <button class="btn btn-ghost btn-sm" onclick="loadBotUsers()">↻ Refresh</button>
-            </div>
-            <div style="overflow-x:auto;">
-              <table id="users-table">
-                <thead>
-                  <tr>
-                    <th>User</th>
-                    <th>Telegram ID</th>
-                    <th>Joined</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="users-tbody">
-                  <tr><td colspan="5" class="loading"></td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- BOTS PAGE -->
-        <div class="page" id="page-bots">
-          <div class="section-header">
-            <div class="section-title">My Bots <span id="bots-count"></span></div>
-            <button class="btn btn-accent btn-sm" onclick="openModal('add-bot-modal')">+ Add Bot</button>
-          </div>
-          <div class="table-card">
-            <div style="overflow-x:auto;">
-              <table id="bots-table">
-                <thead>
-                  <tr>
-                    <th>Bot Name</th>
-                    <th>Category</th>
-                    <th>Users</th>
-                    <th>Status</th>
-                    <th>Created</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="bots-tbody">
-                  <tr><td colspan="6" class="loading"></td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- BROADCAST PAGE -->
-        <div class="page" id="page-broadcast">
-          <div class="broadcast-card">
-            <div class="section-title" style="margin-bottom:16px;">📢 Broadcast Message</div>
-            <div class="broadcast-meta" id="broadcast-meta">Loading user count…</div>
-            <textarea class="broadcast-textarea" id="broadcast-text" placeholder="Type your broadcast message here…&#10;&#10;Supports basic Telegram markdown: *bold*, _italic_, `code`"></textarea>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
-              <button class="btn btn-accent" onclick="sendBroadcast()">📤 Send to All Users</button>
-              <button class="btn btn-ghost" onclick="previewBroadcast()">👁 Preview</button>
-            </div>
-          </div>
-          <div id="broadcast-preview" style="margin-top:16px;display:none;">
-            <div class="section-title" style="margin-bottom:10px;">Preview</div>
-            <div class="table-card" style="padding:16px;font-size:13px;line-height:1.7;" id="broadcast-preview-content"></div>
-          </div>
-        </div>
-
-        <!-- SETTINGS PAGE -->
-        <div class="page" id="page-settings">
-          <div class="settings-grid">
-            <div class="settings-card">
-              <div class="section-title" style="margin-bottom:14px;">👤 Profile</div>
-              <div class="settings-row"><span class="settings-key">Email</span><span class="settings-val" id="set-email">—</span></div>
-              <div class="settings-row"><span class="settings-key">Username</span><span class="settings-val" id="set-username">—</span></div>
-              <div class="settings-row"><span class="settings-key">Role</span><span class="settings-val" id="set-role">—</span></div>
-              <div class="settings-row"><span class="settings-key">Member Since</span><span class="settings-val" id="set-since">—</span></div>
-              <div style="margin-top:16px;">
-                <button class="btn btn-danger btn-sm" onclick="doLogout()">⏻ Logout</button>
-              </div>
-            </div>
-            <div class="settings-card">
-              <div class="section-title" style="margin-bottom:14px;">⚙ Platform Config</div>
-              <div class="settings-row">
-                <span class="settings-key">Supabase URL</span>
-                <span class="settings-val mono" style="font-size:11px;" id="set-sb-url">—</span>
-              </div>
-              <div class="settings-row">
-                <span class="settings-key">Connection</span>
-                <span class="badge badge-green" id="set-connection">●  Connected</span>
-              </div>
-              <div style="margin-top:16px;">
-                <button class="btn btn-ghost btn-sm" onclick="resetSetup()">🔄 Reset Config</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- SA PANEL PAGE -->
-        <div class="page" id="page-sa-panel">
-          <div style="margin-bottom:20px;">
-            <div class="welcome-banner" style="background:linear-gradient(135deg,rgba(246,224,94,0.07),rgba(246,173,85,0.07));border-color:rgba(246,224,94,0.2);">
-              <h2>👑 Super Admin Panel</h2>
-              <p class="jp-text">スーパー管理者 — Complete platform control at your fingertips</p>
-            </div>
-          </div>
-          <div class="sa-grid">
-            <div class="sa-section-card">
-              <div class="sa-section-title">👥 All Admins</div>
-              <div id="sa-admins-list"><div class="loading"></div></div>
-            </div>
-            <div class="sa-section-card">
-              <div class="sa-section-title">🤖 All Bots</div>
-              <div id="sa-bots-list"><div class="loading"></div></div>
-            </div>
-            <div class="sa-section-card">
-              <div class="sa-section-title">📊 Platform Stats</div>
-              <div id="sa-stats">
-                <div class="settings-row"><span class="settings-key">Total Admins</span><span class="settings-val" id="sa-stat-admins">—</span></div>
-                <div class="settings-row"><span class="settings-key">Total Bots</span><span class="settings-val" id="sa-stat-bots">—</span></div>
-                <div class="settings-row"><span class="settings-key">Total Users</span><span class="settings-val" id="sa-stat-users">—</span></div>
-                <div class="settings-row"><span class="settings-key">Total Messages</span><span class="settings-val" id="sa-stat-msgs">—</span></div>
-              </div>
-            </div>
-            <div class="sa-section-card">
-              <div class="sa-section-title">🚀 Actions</div>
-              <div style="display:flex;flex-direction:column;gap:8px;">
-                <button class="btn btn-ghost" onclick="promoteUser()">⬆ Promote User to Admin</button>
-                <button class="btn btn-danger" onclick="demoteAdmin()">⬇ Demote Admin to User</button>
-                <button class="btn btn-ghost" onclick="loadSAPanel()">↻ Refresh Data</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <button class="submit" id="r-btn" onclick="doRegister()">Create Account →</button>
+        <div class="err-box" id="r-err"></div>
+        <div class="spin-wrap" id="r-spin"><div class="dot-spin"></div><div class="dot-spin"></div><div class="dot-spin"></div></div>
       </div>
-    </main>
-  </div>
-</div>
 
-<!-- MODALS -->
+      <!-- OWNER -->
+      <div id="pane-owner" style="display:none;">
+        <div class="owner-warn">
+          ⚠ Super Owner access — sabhi bots aur admins ka control.<br>
+          Default password: <strong>owner2024</strong>
+        </div>
+        <div class="field">
+          <label class="field-label">Owner Password</label>
+          <div class="input-wrap">
+            <input type="password" class="field-input" id="o-pass" placeholder="••••••••" style="padding-right:24px;" onkeydown="if(event.key==='Enter')doOwner()">
+            <button class="eye" onclick="toggleEye('o-pass')">○</button>
+          </div>
+        </div>
+        <div class="field"><label class="field-label">Supabase URL</label><input type="text" class="field-input" id="o-url" placeholder="https://xyz.supabase.co"></div>
+        <div class="field"><label class="field-label">Anon Key</label><input type="text" class="field-input" id="o-key" placeholder="eyJhbGci..."></div>
+        <button class="submit owner-btn" id="o-btn" onclick="doOwner()">Owner Access →</button>
+        <div class="err-box" id="o-err"></div>
+        <div class="spin-wrap" id="o-spin"><div class="dot-spin"></div><div class="dot-spin"></div><div class="dot-spin"></div></div>
+      </div>
 
-<!-- Add Bot Modal -->
-<div class="modal-overlay" id="add-bot-modal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">🤖 Add New Bot</div>
-      <div class="modal-close" onclick="closeModal('add-bot-modal')">✕</div>
-    </div>
-    <div class="field-group">
-      <div class="field-label">Bot Name</div>
-      <input class="field-input" id="bot-name" placeholder="My Awesome Bot">
-    </div>
-    <div class="field-group">
-      <div class="field-label">Bot Token (from @BotFather)</div>
-      <input class="field-input" id="bot-token" placeholder="1234567890:AAF..." type="password">
-    </div>
-    <div class="field-group">
-      <div class="field-label">Category</div>
-      <select class="field-select" id="bot-category">
-        <option value="education">📚 Education</option>
-        <option value="gaming">🎮 Gaming</option>
-        <option value="health">🏥 Health</option>
-        <option value="finance">💰 Finance</option>
-        <option value="ecommerce">🛒 E-Commerce</option>
-        <option value="entertainment">🎬 Entertainment</option>
-        <option value="utility">🔧 Utility</option>
-      </select>
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;">
-      <button class="btn btn-ghost" onclick="closeModal('add-bot-modal')">Cancel</button>
-      <button class="btn btn-accent" onclick="addBot()">Create Bot</button>
     </div>
   </div>
 </div>
 
-<!-- Add Seed User Modal (for demo/testing) -->
-<div class="modal-overlay" id="add-user-modal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">➕ Add Bot User (Demo)</div>
-      <div class="modal-close" onclick="closeModal('add-user-modal')">✕</div>
-    </div>
-    <div class="field-group">
-      <div class="field-label">Telegram ID</div>
-      <input class="field-input" id="new-tg-id" placeholder="123456789">
-    </div>
-    <div class="field-group">
-      <div class="field-label">Username</div>
-      <input class="field-input" id="new-tg-username" placeholder="@username">
-    </div>
-    <div class="field-group">
-      <div class="field-label">First Name</div>
-      <input class="field-input" id="new-tg-firstname" placeholder="John">
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;">
-      <button class="btn btn-ghost" onclick="closeModal('add-user-modal')">Cancel</button>
-      <button class="btn btn-accent" onclick="addBotUser()">Add User</button>
-    </div>
-  </div>
-</div>
-
-<!-- Promote User Modal -->
-<div class="modal-overlay" id="promote-modal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">⬆ Promote User to Admin</div>
-      <div class="modal-close" onclick="closeModal('promote-modal')">✕</div>
-    </div>
-    <div class="field-group">
-      <div class="field-label">User Email</div>
-      <input class="field-input" id="promote-email" placeholder="user@example.com" type="email">
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;">
-      <button class="btn btn-ghost" onclick="closeModal('promote-modal')">Cancel</button>
-      <button class="btn btn-success" onclick="doPromote()">Promote ⬆</button>
-    </div>
-  </div>
-</div>
-
-<!-- Demote Admin Modal -->
-<div class="modal-overlay" id="demote-modal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">⬇ Demote Admin</div>
-      <div class="modal-close" onclick="closeModal('demote-modal')">✕</div>
-    </div>
-    <div class="field-group">
-      <div class="field-label">Admin Email</div>
-      <input class="field-input" id="demote-email" placeholder="admin@example.com" type="email">
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;">
-      <button class="btn btn-ghost" onclick="closeModal('demote-modal')">Cancel</button>
-      <button class="btn btn-danger" onclick="doDemote()">Demote ⬇</button>
-    </div>
-  </div>
-</div>
+<div class="toast" id="toast"></div>
 
 <script>
-/* ===================== GLOBALS ===================== */
-let supabase = null;
-let currentUser = null;
-let currentProfile = null;
-let currentBotId = null;
-let myBots = [];
-let allBotUsers = [];
-let allMessages = [];
-
-const CATS = {
-  education: { label: '📚 Education', cls: 'cat-education' },
-  gaming: { label: '🎮 Gaming', cls: 'cat-gaming' },
-  health: { label: '🏥 Health', cls: 'cat-health' },
-  finance: { label: '💰 Finance', cls: 'cat-finance' },
-  ecommerce: { label: '🛒 E-Commerce', cls: 'cat-ecommerce' },
-  entertainment: { label: '🎬 Entertainment', cls: 'cat-entertainment' },
-  utility: { label: '🔧 Utility', cls: 'cat-utility' },
-};
-
-/* ===================== SETUP ===================== */
-function initSupabase() {
-  const url = document.getElementById('sb-url').value.trim();
-  const key = document.getElementById('sb-key').value.trim();
-  if (!url || !key) { toast('Please enter both URL and Key', 'error'); return; }
-  try {
-    supabase = window.supabase.createClient(url, key);
-    localStorage.setItem('bd_url', url);
-    localStorage.setItem('bd_key', key);
-    toast('Connected to Supabase! ✅', 'success');
-    document.getElementById('setup-screen').style.display = 'none';
-    checkAuth();
-  } catch(e) { toast('Invalid config: ' + e.message, 'error'); }
+// ─── Petals ───────────────────────────────────────────
+const canvas = document.querySelector('.bg-canvas');
+for(let i=0;i<12;i++){
+  const p=document.createElement('div');
+  p.className='petal';
+  p.style.left=Math.random()*100+'vw';
+  p.style.width=p.style.height=(6+Math.random()*6)+'px';
+  p.style.animationDuration=(8+Math.random()*12)+'s';
+  p.style.animationDelay=(Math.random()*10)+'s';
+  p.style.opacity=0;
+  canvas.appendChild(p);
 }
 
-function resetSetup() {
-  localStorage.removeItem('bd_url');
-  localStorage.removeItem('bd_key');
-  location.reload();
-}
-
-/* ===================== AUTH ===================== */
-async function checkAuth() {
-  if (!supabase) return;
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) {
-    currentUser = session.user;
-    await loadProfile();
-    showApp();
-  } else {
-    document.getElementById('auth-screen').style.display = 'flex';
-  }
-}
-
-function switchAuthTab(tab) {
-  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0 && tab==='login')||(i===1 && tab==='register')));
-  document.getElementById('auth-login-form').style.display = tab==='login'?'block':'none';
-  document.getElementById('auth-register-form').style.display = tab==='register'?'block':'none';
-  document.getElementById('auth-error').style.display = 'none';
-}
-
-async function doLogin() {
-  const email = document.getElementById('login-email').value.trim();
-  const pass = document.getElementById('login-pass').value;
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
-  if (error) { showAuthError(error.message); return; }
-  currentUser = data.user;
-  await loadProfile();
-  document.getElementById('auth-screen').style.display = 'none';
-  showApp();
-}
-
-async function doRegister() {
-  const username = document.getElementById('reg-username').value.trim();
-  const email = document.getElementById('reg-email').value.trim();
-  const pass = document.getElementById('reg-pass').value;
-  if (!username||!email||!pass) { showAuthError('All fields required'); return; }
-  const { data, error } = await supabase.auth.signUp({ email, password: pass });
-  if (error) { showAuthError(error.message); return; }
-  currentUser = data.user;
-  // Check if first user => superadmin
-  const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
-  const role = (count === 0) ? 'superadmin' : 'admin';
-  await supabase.from('profiles').insert({ id: currentUser.id, email, username, role });
-  await loadProfile();
-  document.getElementById('auth-screen').style.display = 'none';
-  showApp();
-  toast(role==='superadmin' ? '👑 You are the SuperAdmin!' : '✅ Account created!', 'success');
-}
-
-function showAuthError(msg) {
-  const el = document.getElementById('auth-error');
-  el.textContent = msg; el.style.display = 'block';
-}
-
-async function doLogout() {
-  await supabase.auth.signOut();
-  currentUser = null; currentProfile = null; currentBotId = null;
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('auth-screen').style.display = 'flex';
-}
-
-async function loadProfile() {
-  const { data } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
-  currentProfile = data;
-}
-
-/* ===================== APP ===================== */
-function showApp() {
-  document.getElementById('app').style.display = 'block';
-  updateUserUI();
-  loadMyBots().then(() => {
-    navigate('dashboard');
+// ─── Tab ──────────────────────────────────────────────
+function switchTab(t){
+  ['login','reg','owner'].forEach(x=>{
+    document.getElementById('tab-'+x)?.classList?.toggle('active',x===t);
+    document.getElementById('pane-'+x).style.display=x===t?'':'none';
   });
 }
 
-function updateUserUI() {
-  if (!currentProfile) return;
-  const name = currentProfile.username || currentProfile.email || '?';
-  const initial = name[0].toUpperCase();
-  document.getElementById('sidebar-avatar').textContent = initial;
-  document.getElementById('sidebar-username').textContent = name;
-  document.getElementById('sidebar-role').textContent = currentProfile.role;
-  document.getElementById('sidebar-role').className = 'user-role' + (currentProfile.role==='superadmin'?' superadmin':'');
-  document.getElementById('welcome-name').textContent = name;
-  // SA button
-  const saBtn = document.getElementById('sa-panel-btn');
-  saBtn.style.display = currentProfile.role==='superadmin' ? 'flex' : 'none';
-  // Settings
-  document.getElementById('set-email').textContent = currentProfile.email || '—';
-  document.getElementById('set-username').textContent = currentProfile.username || '—';
-  document.getElementById('set-role').textContent = currentProfile.role;
-  document.getElementById('set-since').textContent = currentProfile.created_at ? new Date(currentProfile.created_at).toLocaleDateString() : '—';
-  document.getElementById('set-sb-url').textContent = localStorage.getItem('bd_url') || '—';
+// ─── Eye toggle ───────────────────────────────────────
+function toggleEye(id){
+  const el=document.getElementById(id);
+  el.type=el.type==='password'?'text':'password';
 }
 
-/* ===================== NAVIGATION ===================== */
-const PAGE_TITLES = {
-  dashboard: ['Dashboard', 'ダッシュボード'],
-  messages: ['Messages', 'メッセージ'],
-  users: ['Bot Users', 'ユーザー管理'],
-  bots: ['My Bots', 'ボット管理'],
-  broadcast: ['Broadcast', 'ブロードキャスト'],
-  settings: ['Settings', '設定'],
-  'sa-panel': ['Super Admin', 'スーパー管理者パネル'],
-};
-
-function navigate(page) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const pageEl = document.getElementById('page-' + page);
-  if (pageEl) pageEl.classList.add('active');
-  const navEl = document.querySelector(`.nav-item[onclick="navigate('${page}')"]`);
-  if (navEl) navEl.classList.add('active');
-  const titles = PAGE_TITLES[page] || [page, ''];
-  document.getElementById('topbar-title').textContent = titles[0];
-  document.getElementById('topbar-sub').textContent = titles[1];
-  // Close sidebar on mobile
-  if (window.innerWidth <= 768) {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebarOverlay').classList.remove('open');
-  }
-  // Load data
-  if (page==='dashboard') loadDashboard();
-  else if (page==='messages') loadMessages();
-  else if (page==='users') loadBotUsers();
-  else if (page==='bots') loadBotsPage();
-  else if (page==='broadcast') loadBroadcastMeta();
-  else if (page==='sa-panel') loadSAPanel();
+// ─── Purpose ──────────────────────────────────────────
+let selP=null,selTheme='general';
+function selPurpose(el){
+  document.querySelectorAll('.pc').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  selP=el.dataset.p; selTheme=el.dataset.theme;
 }
 
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('sidebarOverlay').classList.toggle('open');
+// ─── SB toggle ───────────────────────────────────────
+function toggleSB(){
+  const tog=document.getElementById('sb-tog');
+  const fields=document.getElementById('sb-fields');
+  tog.classList.toggle('open');
+  fields.classList.toggle('open');
 }
 
-/* ===================== BOTS ===================== */
-async function loadMyBots() {
-  if (!currentUser) return;
-  const { data } = await supabase.from('bots').select('*').eq('owner_id', currentUser.id).order('created_at', { ascending: false });
-  myBots = data || [];
-  renderBotDropdown();
-  if (myBots.length && !currentBotId) currentBotId = myBots[0].id;
-  updateActiveBotName();
+// ─── Supabase init ────────────────────────────────────
+let SB=null;
+function initSB(url,key){
+  if(!url||!key)return false;
+  try{ SB=supabase.createClient(url,key); localStorage.setItem('sb_url',url); localStorage.setItem('sb_key',key); return true; }
+  catch(e){return false;}
+}
+// restore SB
+(()=>{const u=localStorage.getItem('sb_url'),k=localStorage.getItem('sb_key');if(u&&k)initSB(u,k);})();
+
+// ─── Helpers ──────────────────────────────────────────
+function showErr(id,msg){const e=document.getElementById(id);e.textContent='✕ '+msg;e.style.display='block';}
+function hideErr(id){document.getElementById(id).style.display='none';}
+function setBusy(btnId,spinId,busy,label=''){
+  const b=document.getElementById(btnId);
+  b.disabled=busy; if(!busy&&label)b.textContent=label;
+  document.getElementById(spinId).classList.toggle('show',busy);
+}
+let toastT;
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2400);
 }
 
-function renderBotDropdown() {
-  const dd = document.getElementById('botDropdown');
-  dd.innerHTML = myBots.map(b => `
-    <div class="bot-option ${b.id===currentBotId?'active':''}" onclick="selectBot('${b.id}')">
-      <span style="font-size:14px;">${(CATS[b.category]||{}).label?.split(' ')[0]||'🤖'}</span>
-      ${b.name}
-    </div>
-  `).join('') + `<div class="add-bot-option" onclick="closeDropdownAndOpenModal()">＋ Add New Bot</div>`;
+// ─── LOGIN ────────────────────────────────────────────
+async function doLogin(){
+  hideErr('l-err');
+  const email=document.getElementById('l-email').value.trim();
+  const pass=document.getElementById('l-pass').value;
+  if(!email||!pass){showErr('l-err','Email aur password dono chahiye');return;}
+  const url=localStorage.getItem('sb_url'),key=localStorage.getItem('sb_key');
+  if(!url||!key){showErr('l-err','Pehle register karo — Supabase config needed');return;}
+  initSB(url,key);
+  setBusy('l-btn','l-spin',true);
+  try{
+    const{data,error}=await SB.auth.signInWithPassword({email,password:pass});
+    if(error)throw error;
+    const{data:admin}=await SB.from('admins').select('*').eq('auth_id',data.user.id).single();
+    if(!admin)throw new Error('Profile nahi mila. Pehle register karo.');
+    const session={role:'admin',admin_id:admin.id,auth_id:data.user.id,email:admin.email,name:admin.name,bot_token:admin.bot_token,purpose:admin.purpose||'general',theme:admin.theme||'general',bot_info:admin.bot_info?JSON.parse(admin.bot_info):null};
+    localStorage.setItem('bds',JSON.stringify(session));
+    window.location.href='dashboard-'+(session.theme||'general')+'.html';
+  }catch(e){showErr('l-err',e.message||'Login failed');setBusy('l-btn','l-spin',false,'Enter →');}
 }
 
-function closeDropdownAndOpenModal() {
-  document.getElementById('botDropdown').classList.remove('open');
-  openModal('add-bot-modal');
+// ─── REGISTER ─────────────────────────────────────────
+async function doRegister(){
+  hideErr('r-err');
+  const name=document.getElementById('r-name').value.trim();
+  const email=document.getElementById('r-email').value.trim();
+  const pass=document.getElementById('r-pass').value;
+  const token=document.getElementById('r-token').value.trim();
+  const sburl=document.getElementById('r-sburl').value.trim()||localStorage.getItem('sb_url');
+  const sbkey=document.getElementById('r-sbkey').value.trim()||localStorage.getItem('sb_key');
+  if(!name||!email||!pass||!token){showErr('r-err','Sabhi fields fill karo');return;}
+  if(!selP){showErr('r-err','Bot ka purpose select karo');return;}
+  if(!sburl||!sbkey){showErr('r-err','Supabase config toggle karo aur URL+Key dalo');return;}
+  if(!initSB(sburl,sbkey)){showErr('r-err','Supabase config invalid');return;}
+  setBusy('r-btn','r-spin',true);
+  try{
+    const botRes=await fetch(`https://api.telegram.org/bot${token}/getMe`).then(r=>r.json());
+    if(!botRes.ok)throw new Error('Bot token invalid: '+(botRes.description||'check karo'));
+    const botInfo=botRes.result;
+    const{data,error}=await SB.auth.signUp({email,password:pass});
+    if(error)throw error;
+    const{error:dbErr}=await SB.from('admins').insert({auth_id:data.user.id,name,email,bot_token:token,purpose:selP,theme:selTheme,bot_info:JSON.stringify(botInfo),created_at:new Date().toISOString()});
+    if(dbErr)throw dbErr;
+    const{data:admin}=await SB.from('admins').select('id').eq('auth_id',data.user.id).single();
+    const session={role:'admin',admin_id:admin?.id,auth_id:data.user.id,email,name,bot_token:token,purpose:selP,theme:selTheme,bot_info:botInfo};
+    localStorage.setItem('bds',JSON.stringify(session));
+    toast('Account created! Loading dashboard...');
+    setTimeout(()=>window.location.href='dashboard-'+selTheme+'.html',800);
+  }catch(e){showErr('r-err',e.message||'Registration failed');setBusy('r-btn','r-spin',false,'Create Account →');}
 }
 
-function toggleBotDropdown() {
-  document.getElementById('botDropdown').classList.toggle('open');
+// ─── OWNER ────────────────────────────────────────────
+const OWNER_PASS='owner2024';
+async function doOwner(){
+  hideErr('o-err');
+  const pass=document.getElementById('o-pass').value;
+  const url=document.getElementById('o-url').value.trim()||localStorage.getItem('sb_url');
+  const key=document.getElementById('o-key').value.trim()||localStorage.getItem('sb_key');
+  if(pass!==OWNER_PASS){showErr('o-err','Wrong password');return;}
+  if(!url||!key){showErr('o-err','Supabase URL aur Key dono chahiye');return;}
+  if(!initSB(url,key)){showErr('o-err','Supabase config invalid');return;}
+  setBusy('o-btn','o-spin',true);
+  const session={role:'owner',name:'Super Owner',theme:'owner'};
+  localStorage.setItem('bds',JSON.stringify(session));
+  toast('Owner access granted...');
+  setTimeout(()=>window.location.href='dashboard-owner.html',600);
 }
 
-document.addEventListener('click', e => {
-  if (!e.target.closest('.bot-switcher')) document.getElementById('botDropdown').classList.remove('open');
-});
-
-function selectBot(id) {
-  currentBotId = id;
-  updateActiveBotName();
-  renderBotDropdown();
-  document.getElementById('botDropdown').classList.remove('open');
-  const activePage = document.querySelector('.page.active');
-  if (activePage) navigate(activePage.id.replace('page-',''));
-}
-
-function updateActiveBotName() {
-  const bot = myBots.find(b => b.id === currentBotId);
-  document.getElementById('active-bot-name').textContent = bot ? bot.name : 'No bot selected';
-}
-
-async function addBot() {
-  const name = document.getElementById('bot-name').value.trim();
-  const token = document.getElementById('bot-token').value.trim();
-  const category = document.getElementById('bot-category').value;
-  if (!name || !token) { toast('Name and token required', 'error'); return; }
-  const { error } = await supabase.from('bots').insert({ name, token, category, owner_id: currentUser.id, active: true });
-  if (error) { toast(error.message, 'error'); return; }
-  toast('Bot added! 🤖', 'success');
-  closeModal('add-bot-modal');
-  document.getElementById('bot-name').value = '';
-  document.getElementById('bot-token').value = '';
-  await loadMyBots();
-  if (myBots.length === 1) currentBotId = myBots[0].id;
-  loadBotsPage();
-}
-
-async function loadBotsPage() {
-  await loadMyBots();
-  document.getElementById('bots-count').textContent = `(${myBots.length})`;
-  const tbody = document.getElementById('bots-tbody');
-  if (!myBots.length) {
-    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">🤖</div><p>No bots yet. Add your first bot!</p></div></td></tr>';
-    return;
-  }
-  tbody.innerHTML = myBots.map(b => {
-    const cat = CATS[b.category] || { label: b.category, cls: '' };
-    return `<tr>
-      <td><strong>${b.name}</strong></td>
-      <td><span class="cat-pill ${cat.cls}">${cat.label}</span></td>
-      <td>—</td>
-      <td><span class="badge ${b.active?'badge-green':'badge-red'}">${b.active?'Active':'Inactive'}</span></td>
-      <td class="mono" style="font-size:11px;color:var(--text2);">${new Date(b.created_at).toLocaleDateString()}</td>
-      <td style="display:flex;gap:6px;">
-        <button class="btn btn-ghost btn-sm" onclick="selectBot('${b.id}');navigate('dashboard')">View</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteBot('${b.id}')">Delete</button>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-async function deleteBot(id) {
-  if (!confirm('Delete this bot? All data will be lost.')) return;
-  await supabase.from('bots').delete().eq('id', id);
-  if (currentBotId === id) currentBotId = null;
-  toast('Bot deleted', 'info');
-  await loadMyBots();
-  loadBotsPage();
-}
-
-/* ===================== DASHBOARD ===================== */
-async function loadDashboard() {
-  if (!currentBotId) {
-    document.getElementById('stat-bots').textContent = myBots.length;
-    document.getElementById('stat-users').textContent = '—';
-    document.getElementById('stat-messages').textContent = '—';
-    document.getElementById('stat-blocked').textContent = '—';
-    document.getElementById('recent-messages-feed').innerHTML = '<div class="empty-state"><div class="empty-icon">🤖</div><p>Select or add a bot to begin.</p></div>';
-    return;
-  }
-  document.getElementById('stat-bots').textContent = myBots.filter(b=>b.active).length;
-  const [usersRes, msgsRes, blockedRes] = await Promise.all([
-    supabase.from('bot_users').select('*', {count:'exact',head:true}).eq('bot_id', currentBotId),
-    supabase.from('messages').select('*', {count:'exact',head:true}).eq('bot_id', currentBotId),
-    supabase.from('bot_users').select('*', {count:'exact',head:true}).eq('bot_id', currentBotId).eq('is_blocked', true),
-  ]);
-  document.getElementById('stat-users').textContent = usersRes.count ?? 0;
-  document.getElementById('stat-messages').textContent = msgsRes.count ?? 0;
-  document.getElementById('stat-blocked').textContent = blockedRes.count ?? 0;
-  // Recent messages
-  const { data: msgs } = await supabase.from('messages').select('*, bot_users(username, first_name)').eq('bot_id', currentBotId).order('sent_at', { ascending: false }).limit(10);
-  renderMessagesFeed(msgs || [], 'recent-messages-feed');
-  document.getElementById('recent-msgs-count').textContent = msgs ? `(${msgs.length})` : '';
-  document.getElementById('msg-badge').textContent = msgsRes.count ?? 0;
-}
-
-/* ===================== MESSAGES ===================== */
-async function loadMessages() {
-  if (!currentBotId) { document.getElementById('messages-feed').innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><p>Select a bot first.</p></div>'; return; }
-  document.getElementById('messages-feed').innerHTML = '<div class="loading"></div>';
-  const { data } = await supabase.from('messages').select('*, bot_users(username, first_name)').eq('bot_id', currentBotId).order('sent_at', { ascending: false }).limit(50);
-  allMessages = data || [];
-  renderMessagesFeed(allMessages, 'messages-feed');
-}
-
-function renderMessagesFeed(msgs, containerId) {
-  const el = document.getElementById(containerId);
-  if (!msgs.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><p>No messages yet.</p></div>'; return; }
-  el.innerHTML = msgs.map(m => {
-    const u = m.bot_users;
-    const name = u ? (u.first_name || u.username || 'Unknown') : 'Unknown';
-    const initial = name[0]?.toUpperCase() || '?';
-    const time = new Date(m.sent_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-    return `<div class="msg-item">
-      <div class="msg-avatar">${initial}</div>
-      <div class="msg-content">
-        <div class="msg-header">
-          <span class="msg-user">${name}</span>
-          <span class="msg-time">${time}</span>
-          <span class="badge ${m.direction==='outgoing'?'badge-blue':'badge-purple'}" style="padding:1px 6px;font-size:10px;">${m.direction}</span>
-        </div>
-        <div class="msg-text">${escHtml(m.text||'')}</div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function filterMessages(q) {
-  const filtered = allMessages.filter(m => (m.text||'').toLowerCase().includes(q.toLowerCase()));
-  renderMessagesFeed(filtered, 'messages-feed');
-}
-
-/* ===================== USERS ===================== */
-async function loadBotUsers() {
-  if (!currentBotId) { document.getElementById('users-tbody').innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">👥</div><p>Select a bot first.</p></div></td></tr>'; return; }
-  document.getElementById('users-tbody').innerHTML = '<tr><td colspan="5"><div class="loading"></div></td></tr>';
-  const { data } = await supabase.from('bot_users').select('*').eq('bot_id', currentBotId).order('joined_at', { ascending: false });
-  allBotUsers = data || [];
-  renderUsersTable(allBotUsers);
-}
-
-function renderUsersTable(users) {
-  const tbody = document.getElementById('users-tbody');
-  if (!users.length) {
-    tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">👥</div><p>No users yet.<br><button class="btn btn-ghost btn-sm" style="margin-top:10px;" onclick="openModal(\'add-user-modal\')">+ Add Demo User</button></p></div></td></tr>';
-    return;
-  }
-  tbody.innerHTML = users.map(u => `<tr>
-    <td>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <div style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;">${(u.first_name||u.username||'?')[0].toUpperCase()}</div>
-        <div>
-          <div style="font-size:13px;font-weight:600;">${u.first_name||''} ${u.last_name||''}</div>
-          <div style="font-size:11px;color:var(--text2);">@${u.username||'unknown'}</div>
-        </div>
-      </div>
-    </td>
-    <td class="mono" style="font-size:12px;color:var(--text2);">${u.telegram_id||'—'}</td>
-    <td style="font-size:12px;color:var(--text2);">${new Date(u.joined_at).toLocaleDateString()}</td>
-    <td><span class="badge ${u.is_blocked?'badge-red':'badge-green'}">${u.is_blocked?'Blocked':'Active'}</span></td>
-    <td style="display:flex;gap:6px;">
-      <button class="btn btn-sm ${u.is_blocked?'btn-success':'btn-danger'}" onclick="toggleUserBlock('${u.id}',${u.is_blocked})">
-        ${u.is_blocked?'Unblock':'Block'}
-      </button>
-      <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">Delete</button>
-    </td>
-  </tr>`).join('');
-}
-
-function filterUsers(q) {
-  const filtered = allBotUsers.filter(u =>
-    (u.username||'').toLowerCase().includes(q.toLowerCase()) ||
-    (u.first_name||'').toLowerCase().includes(q.toLowerCase()) ||
-    (u.telegram_id||'').includes(q)
-  );
-  renderUsersTable(filtered);
-}
-
-async function toggleUserBlock(id, isBlocked) {
-  await supabase.from('bot_users').update({ is_blocked: !isBlocked }).eq('id', id);
-  toast(isBlocked ? 'User unblocked ✅' : 'User blocked 🚫', 'info');
-  loadBotUsers();
-}
-
-async function deleteUser(id) {
-  if (!confirm('Delete this user?')) return;
-  await supabase.from('bot_users').delete().eq('id', id);
-  toast('User deleted', 'info');
-  loadBotUsers();
-}
-
-async function addBotUser() {
-  const tgId = document.getElementById('new-tg-id').value.trim();
-  const uname = document.getElementById('new-tg-username').value.trim().replace('@','');
-  const fname = document.getElementById('new-tg-firstname').value.trim();
-  if (!tgId || !currentBotId) { toast('Bot and Telegram ID required', 'error'); return; }
-  const { error } = await supabase.from('bot_users').insert({ bot_id: currentBotId, telegram_id: tgId, username: uname, first_name: fname });
-  if (error) { toast(error.message, 'error'); return; }
-  toast('User added ✅', 'success');
-  closeModal('add-user-modal');
-  loadBotUsers();
-}
-
-/* ===================== BROADCAST ===================== */
-async function loadBroadcastMeta() {
-  if (!currentBotId) { document.getElementById('broadcast-meta').textContent = 'No bot selected.'; return; }
-  const { count } = await supabase.from('bot_users').select('*', {count:'exact',head:true}).eq('bot_id', currentBotId).eq('is_blocked', false);
-  document.getElementById('broadcast-meta').textContent = `📡 Will reach ${count||0} active users (blocked users excluded)`;
-}
-
-async function sendBroadcast() {
-  const text = document.getElementById('broadcast-text').value.trim();
-  if (!text) { toast('Enter a message first', 'error'); return; }
-  if (!currentBotId) { toast('Select a bot first', 'error'); return; }
-  // Get all non-blocked users
-  const { data: users } = await supabase.from('bot_users').select('id').eq('bot_id', currentBotId).eq('is_blocked', false);
-  if (!users || !users.length) { toast('No active users to broadcast to', 'info'); return; }
-  // Insert outgoing messages for each user
-  const msgs = users.map(u => ({ bot_id: currentBotId, user_id: u.id, text, direction: 'outgoing' }));
-  const { error } = await supabase.from('messages').insert(msgs);
-  if (error) { toast(error.message, 'error'); return; }
-  toast(`📢 Broadcast sent to ${users.length} users!`, 'success');
-  document.getElementById('broadcast-text').value = '';
-  document.getElementById('broadcast-preview').style.display = 'none';
-}
-
-function previewBroadcast() {
-  const text = document.getElementById('broadcast-text').value.trim();
-  if (!text) { toast('Nothing to preview', 'info'); return; }
-  document.getElementById('broadcast-preview').style.display = 'block';
-  document.getElementById('broadcast-preview-content').innerHTML = `<div style="font-family:'Space Mono',monospace;white-space:pre-wrap;">${escHtml(text)}</div>`;
-}
-
-/* ===================== SA PANEL ===================== */
-async function loadSAPanel() {
-  if (currentProfile?.role !== 'superadmin') { toast('Access denied', 'error'); return; }
-  // Load all profiles
-  const { data: profiles } = await supabase.from('profiles').select('*').order('created_at');
-  const { data: allBots } = await supabase.from('bots').select('*, profiles(username,email)').order('created_at', { ascending: false });
-  const { count: totalUsers } = await supabase.from('bot_users').select('*', {count:'exact',head:true});
-  const { count: totalMsgs } = await supabase.from('messages').select('*', {count:'exact',head:true});
-
-  // Stats
-  document.getElementById('sa-stat-admins').textContent = profiles?.length || 0;
-  document.getElementById('sa-stat-bots').textContent = allBots?.length || 0;
-  document.getElementById('sa-stat-users').textContent = totalUsers || 0;
-  document.getElementById('sa-stat-msgs').textContent = totalMsgs || 0;
-
-  // Admins list
-  const adminsList = document.getElementById('sa-admins-list');
-  adminsList.innerHTML = (profiles||[]).map(p => `
-    <div style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;background:var(--bg2);margin-bottom:6px;">
-      <div style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;">${(p.username||p.email||'?')[0].toUpperCase()}</div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.username||'—'}</div>
-        <div style="font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;">${p.email}</div>
-      </div>
-      <span class="badge ${p.role==='superadmin'?'badge-yellow':p.role==='admin'?'badge-blue':'badge-purple'}">${p.role==='superadmin'?'👑':''} ${p.role}</span>
-    </div>
-  `).join('') || '<div class="empty-state" style="padding:20px;"><p>No admins found.</p></div>';
-
-  // Bots list
-  const botsList = document.getElementById('sa-bots-list');
-  botsList.innerHTML = (allBots||[]).map(b => {
-    const cat = CATS[b.category] || { label: b.category, cls: '' };
-    return `<div style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;background:var(--bg2);margin-bottom:6px;">
-      <span style="font-size:18px;">${cat.label?.split(' ')[0]||'🤖'}</span>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:600;">${b.name}</div>
-        <div style="font-size:11px;color:var(--text2);">${b.profiles?.username||b.profiles?.email||'unknown'}</div>
-      </div>
-      <span class="cat-pill ${cat.cls}" style="font-size:10px;">${b.category}</span>
-    </div>`;
-  }).join('') || '<div class="empty-state" style="padding:20px;"><p>No bots found.</p></div>';
-}
-
-function promoteUser() { openModal('promote-modal'); }
-function demoteAdmin() { openModal('demote-modal'); }
-
-async function doPromote() {
-  const email = document.getElementById('promote-email').value.trim();
-  if (!email) { toast('Email required', 'error'); return; }
-  const { error } = await supabase.from('profiles').update({ role: 'admin' }).eq('email', email);
-  if (error) { toast(error.message, 'error'); return; }
-  toast(`${email} promoted to Admin ⬆`, 'success');
-  closeModal('promote-modal');
-  document.getElementById('promote-email').value = '';
-  loadSAPanel();
-}
-
-async function doDemote() {
-  const email = document.getElementById('demote-email').value.trim();
-  if (!email) { toast('Email required', 'error'); return; }
-  if (email === currentProfile.email) { toast('Cannot demote yourself!', 'error'); return; }
-  const { error } = await supabase.from('profiles').update({ role: 'user' }).eq('email', email);
-  if (error) { toast(error.message, 'error'); return; }
-  toast(`${email} demoted to User ⬇`, 'info');
-  closeModal('demote-modal');
-  document.getElementById('demote-email').value = '';
-  loadSAPanel();
-}
-
-/* ===================== MODALS ===================== */
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-document.addEventListener('click', e => {
-  if (e.target.classList.contains('modal-overlay')) closeModal(e.target.id);
-});
-
-/* ===================== TOAST ===================== */
-function toast(msg, type='info') {
-  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
-  const el = document.createElement('div');
-  el.className = `toast toast-${type}`;
-  el.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
-  document.getElementById('toastContainer').appendChild(el);
-  setTimeout(() => el.remove(), 3500);
-}
-
-/* ===================== UTILS ===================== */
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-/* ===================== BOOT ===================== */
-window.addEventListener('DOMContentLoaded', () => {
-  const savedUrl = localStorage.getItem('bd_url');
-  const savedKey = localStorage.getItem('bd_key');
-  if (savedUrl && savedKey) {
-    document.getElementById('sb-url').value = savedUrl;
-    document.getElementById('sb-key').value = savedKey;
-    try {
-      supabase = window.supabase.createClient(savedUrl, savedKey);
-      document.getElementById('setup-screen').style.display = 'none';
-      checkAuth();
-    } catch(e) {
-      document.getElementById('setup-screen').style.display = 'flex';
-    }
-  }
-});
+// ─── Auto-restore session ─────────────────────────────
+;(()=>{
+  const s=localStorage.getItem('bds');
+  if(!s)return;
+  try{
+    const sess=JSON.parse(s);
+    if(sess.role==='owner')window.location.href='dashboard-owner.html';
+    else if(sess.bot_token)window.location.href='dashboard-'+(sess.theme||'general')+'.html';
+  }catch(e){localStorage.removeItem('bds');}
+})();
 </script>
 </body>
 </html>
